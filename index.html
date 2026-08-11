@@ -1430,36 +1430,42 @@
 
   // ---------- FIREBASE REALTIME STORAGE WRAPPER ----------
   let isInitialLoad = true;
+  let isFirebaseReady = false;
 
   const storageApi = {
     // Listen for live updates from Firebase
     subscribeToChanges() {
       db.ref('stock-monitor-data').on('value', (snapshot) => {
-        const val = snapshot.val();
-        if (val) {
-          items = (val.items || []).map(it => ({code:'', purposes:[], locationId:'', maxStock:'', weightKg:0, category:'Plat', ...it}));
-          stockIn = (val.stockIn || []).map(x => ({receivedDate: x.receivedDate || x.orderedDate || '', notes:'', history:[], createdAt: x.createdAt||0, ...x}));
-          stockOut = (val.stockOut || []).map(x => ({notes:'', history:[], createdAt: x.createdAt||0, ...x}));
-          vendors = (val.vendors || []).map(v => ({contactName:'', phone:'', ...v}));
-          locations = val.locations || [];
-          globalPricePerKg = Number(val.globalPricePerKg||0);
-          globalPriceHistory = val.globalPriceHistory || [];
-          itemImages = val.itemImages || {};
+        const val = snapshot.val() || {};
+        
+        items = (val.items || []).map(it => ({code:'', purposes:[], locationId:'', maxStock:'', weightKg:0, category:'Plat', ...it}));
+        stockIn = (val.stockIn || []).map(x => ({receivedDate: x.receivedDate || x.orderedDate || '', notes:'', history:[], createdAt: x.createdAt||0, ...x}));
+        stockOut = (val.stockOut || []).map(x => ({notes:'', history:[], createdAt: x.createdAt||0, ...x}));
+        vendors = (val.vendors || []).map(v => ({contactName:'', phone:'', ...v}));
+        locations = val.locations || [];
+        globalPricePerKg = Number(val.globalPricePerKg||0);
+        globalPriceHistory = val.globalPriceHistory || [];
+        itemImages = val.itemImages || {};
 
-          // Avoid re-rendering if user is actively filling out a modal
-          const activeModal = document.querySelector('.modal-backdrop.active');
-          if (!activeModal) {
-            renderAll();
-          }
-          if (!isInitialLoad) {
-            showToast(currentLang === 'en' ? 'Synced with live changes!' : 'Tersinkronisasi dengan data terbaru!');
-          }
-          isInitialLoad = false;
+        isFirebaseReady = true;
+
+        const activeModal = document.querySelector('.modal-backdrop.active');
+        if (!activeModal) {
+          renderAll();
         }
+        
+        if (!isInitialLoad) {
+          showToast(currentLang === 'en' ? 'Synced with live changes!' : 'Tersinkronisasi dengan data terbaru!');
+        }
+        isInitialLoad = false;
+      }, (error) => {
+        console.error("Firebase read failed: ", error);
+        showToast("Firebase database error: " + error.message, true);
       });
     },
 
     async saveAllData() {
+      if (!isFirebaseReady) return;
       try {
         await db.ref('stock-monitor-data').set({
           items,
@@ -1556,7 +1562,6 @@
 
   let saveTimer = null;
   function saveData(){
-    // Instantly update local UI view so user actions take effect immediately
     renderAll();
 
     clearTimeout(saveTimer);
