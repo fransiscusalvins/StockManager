@@ -101,7 +101,10 @@
     min-height:100vh;
     transition:background .15s ease, color .15s ease;
   }
+  
+  /* CLIENT-SIDE SECURITY UPDATE: Hide UI by default until auth completes */
   .app{
+    display: none;
     width: 95%;
     max-width: 50%;
     min-width: 1200px;
@@ -1484,6 +1487,11 @@
       });
     },
 
+    // CLIENT-SIDE SECURITY UPDATE: Cut off live DB listener when unauthenticated
+    unsubscribeFromChanges() {
+      db.ref('stock-monitor-data').off();
+    },
+
     async saveAllData() {
       if (!isFirebaseReady) return;
       try {
@@ -1603,23 +1611,45 @@
     try{ localStorage.setItem('stock-monitor-theme', isLight ? 'light' : 'dark'); }catch(e){}
   });
 
-  // ---------- AUTHENTICATION & LOGIN LOGIC ----------
+  // ---------- AUTHENTICATION & LOGIN LOGIC (UPDATED CLIENT SECURITY) ----------
   let isSubscribed = false;
 
   auth.onAuthStateChanged((user) => {
+    const appContainer = document.querySelector('.app');
+    const authOverlay = document.getElementById('auth-overlay');
+
     if (user) {
       // User is logged in
-      document.getElementById('auth-overlay').style.display = 'none';
+      authOverlay.style.display = 'none';
+      appContainer.style.display = 'block'; // Unhide UI
+      
       if (!isSubscribed) {
         storageApi.subscribeToChanges(); // Start loading data
         isSubscribed = true;
       }
     } else {
       // User is logged out
-      document.getElementById('auth-overlay').style.display = 'flex';
+      authOverlay.style.display = 'flex';
+      appContainer.style.display = 'none'; // Completely hide UI from DOM inspection
+
+      // Disconnect live database listener
+      if (isSubscribed) {
+        storageApi.unsubscribeFromChanges();
+      }
+
       isSubscribed = false;
       isFirebaseReady = false;
-      items = []; stockIn = []; stockOut = []; vendors = []; locations = [];
+      
+      // Wipe all local memory
+      items = []; 
+      stockIn = []; 
+      stockOut = []; 
+      vendors = []; 
+      locations = [];
+      itemImages = {};
+      globalPricePerKg = 0;
+      globalPriceHistory = [];
+
       renderAll(); // clear UI views
     }
   });
