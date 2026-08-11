@@ -12,6 +12,7 @@
 
 <!-- Firebase SDKs (v8 for direct script tag compatibility) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
@@ -32,6 +33,7 @@
     firebase.initializeApp(firebaseConfig);
   }
   const db = firebase.database();
+  const auth = firebase.auth();
 </script>
 
 <style>
@@ -448,6 +450,22 @@
 </style>
 </head>
 <body>
+
+<!-- AUTH OVERLAY -->
+<div id="auth-overlay" style="position: fixed; inset: 0; background: var(--bg-app); z-index: 999999; display: flex; align-items: center; justify-content: center;">
+  <div style="background: var(--bg-panel); padding: 30px 40px; border: 1px solid var(--border-c); border-top: 4px solid var(--amber); border-radius: 4px; text-align: center; max-width: 400px; width: 90%;">
+    <div class="mark" style="width:42px;height:42px;background:var(--brand-bg);color:var(--brand-fg);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;font-size:18px;margin: 0 auto 15px auto;">SM</div>
+    <h2 style="margin-top: 0; font-family: var(--mono); color: var(--text-c);">Gudang BPro Access</h2>
+    <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 20px;">Please log in to view and manage the inventory.</p>
+    
+    <input type="email" id="auth-email" placeholder="Email address..." style="padding: 10px 12px; margin-bottom: 10px; width: 100%; border: 1px solid var(--border-c); background: var(--bg-panel); color: var(--text-c); font-family: var(--sans); box-sizing: border-box;">
+    <input type="password" id="auth-password" placeholder="Password..." style="padding: 10px 12px; margin-bottom: 15px; width: 100%; border: 1px solid var(--border-c); background: var(--bg-panel); color: var(--text-c); font-family: var(--sans); box-sizing: border-box;">
+    
+    <button id="auth-submit" class="btn-amber" style="width: 100%; padding: 12px; font-size: 14px;">Sign In</button>
+    <p id="auth-error" style="color: var(--red); display: none; font-size: 12px; margin-top: 15px; font-family: var(--mono);">✖ Incorrect email or password</p>
+  </div>
+</div>
+
 <div class="app">
 
   <header class="top">
@@ -888,6 +906,7 @@
       <footer class="note" data-i18n="footerNote">Data is stored privately in Firebase Realtime Database and stays synced live across all devices. "Export Save Data" produces a ZIP containing complete JSON data and raw uncompressed images. "Import Data" can restore from either this ZIP or an Excel file.</footer>
     </div>
     <div class="footer-actions">
+      <button class="btn-bottom-footer" id="logoutBtn">🔒 <span id="logoutText">Logout</span></button>
       <button class="btn-bottom-footer" id="langToggle">🌐 <span id="langText">Bahasa Indonesia</span></button>
       <button class="btn-bottom-footer" id="themeToggle"><span id="themeIcon">☀️</span> <span id="themeText">Light Mode</span></button>
       <button class="btn-bottom-footer" id="resetBtn" data-i18n="btnResetData">Reset Data</button>
@@ -1426,6 +1445,7 @@
       }
     });
     document.getElementById('langText').textContent = currentLang === 'en' ? 'Bahasa Indonesia' : 'English';
+    document.getElementById('logoutText').textContent = currentLang === 'en' ? 'Logout' : 'Keluar';
   }
 
   // ---------- FIREBASE REALTIME STORAGE WRAPPER ----------
@@ -1537,7 +1557,7 @@
     }).filter(Boolean);
   }
 
-  // Load Preferences & Start Firebase Listener
+  // Load Preferences
   function initDataStore(){
     try{
       const l = localStorage.getItem('stock-monitor-lang');
@@ -1557,7 +1577,6 @@
     }catch(e){}
 
     applyLanguage();
-    storageApi.subscribeToChanges();
   }
 
   let saveTimer = null;
@@ -1583,6 +1602,63 @@
     document.getElementById('themeText').textContent = isLight ? 'Dark Mode' : 'Light Mode';
     try{ localStorage.setItem('stock-monitor-theme', isLight ? 'light' : 'dark'); }catch(e){}
   });
+
+  // ---------- AUTHENTICATION & LOGIN LOGIC ----------
+  let isSubscribed = false;
+
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      // User is logged in
+      document.getElementById('auth-overlay').style.display = 'none';
+      if (!isSubscribed) {
+        storageApi.subscribeToChanges(); // Start loading data
+        isSubscribed = true;
+      }
+    } else {
+      // User is logged out
+      document.getElementById('auth-overlay').style.display = 'flex';
+      isSubscribed = false;
+      isFirebaseReady = false;
+      items = []; stockIn = []; stockOut = []; vendors = []; locations = [];
+      renderAll(); // clear UI views
+    }
+  });
+
+  document.getElementById('auth-submit').addEventListener('click', () => {
+    const email = document.getElementById('auth-email').value.trim();
+    const pwd = document.getElementById('auth-password').value;
+    const err = document.getElementById('auth-error');
+    err.style.display = 'none';
+    
+    if (!email || !pwd) {
+      err.textContent = "✖ Please enter both email and password.";
+      err.style.display = 'block';
+      return;
+    }
+
+    auth.signInWithEmailAndPassword(email, pwd).catch(error => {
+      err.textContent = "✖ " + error.message;
+      err.style.display = 'block';
+    });
+  });
+
+  document.getElementById('auth-password').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') document.getElementById('auth-submit').click();
+  });
+
+  document.getElementById('auth-email').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') document.getElementById('auth-submit').click();
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+     auth.signOut().then(() => {
+        showToast(currentLang === 'en' ? 'Logged out successfully.' : 'Berhasil logout.');
+        // clear inputs for next login
+        document.getElementById('auth-email').value = '';
+        document.getElementById('auth-password').value = '';
+     });
+  });
+
 
   // ---------- computation ----------
   function itemStats(item){
