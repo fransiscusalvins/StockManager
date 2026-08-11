@@ -1,0 +1,3509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stock Monitor — Gudang BPro</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<style>
+  :root{
+    --steel-900:#151a24;
+    --steel-800:#1e2530;
+    --steel-700:#2a3342;
+    --steel-600:#3a465a;
+    --steel-500:#5b6b83;
+    --steel-300:#a7b3c4;
+    --steel-100:#eef1f5;
+    --amber:#e08a2c;
+    --amber-dark:#b5691a;
+    --red:#c0432f;
+    --green:#3f7a54;
+    --mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+    /* DEFAULT: DARK MODE STYLES */
+    --bg-app:#10141b;
+    --bg-grid:#171d26;
+    --bg-panel:#1a212b;
+    --bg-alt:#212a36;
+    --border-c:#2e3a4a;
+    --text-c:#e7ecf3;
+    --text-dim:#8291a8;
+    --accent-strong:#e08a2c;
+    --brand-bg:#e08a2c;
+    --brand-fg:#10141b;
+    --modal-shade: rgba(5,7,10,0.7);
+    --badge-in-bg:rgba(63,122,84,0.25); --badge-in-fg:#7fd39c;
+    --badge-low-bg:rgba(224,138,44,0.22); --badge-low-fg:#f0ad4e;
+    --badge-out-bg:rgba(192,67,47,0.22); --badge-out-fg:#f08a75;
+    --badge-over-bg:rgba(66,133,199,0.22); --badge-over-fg:#7ab1e8;
+  }
+
+  /* OPTIONAL: LIGHT MODE OVERRIDE */
+  body.light-theme{
+    --bg-app:#f5f4f0;
+    --bg-grid:#eef1f5;
+    --bg-panel:#ffffff;
+    --bg-alt:#eef1f5;
+    --border-c:#a7b3c4;
+    --text-c:#1c2230;
+    --text-dim:#5b6b83;
+    --accent-strong:#151a24;
+    --brand-bg:#151a24;
+    --brand-fg:#e08a2c;
+    --modal-shade: rgba(21,26,36,0.55);
+    --badge-in-bg:#e5f0e8; --badge-in-fg:#3f7a54;
+    --badge-low-bg:#fbeed9; --badge-low-fg:#b5691a;
+    --badge-out-bg:#f7e3df; --badge-out-fg:#c0432f;
+    --badge-over-bg:#e3ecf7; --badge-over-fg:#3060a8;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--sans);
+    background:var(--bg-app);
+    color:var(--text-c);
+    background-image:
+      linear-gradient(var(--bg-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+    background-size: 28px 28px;
+    min-height:100vh;
+    transition:background .15s ease, color .15s ease;
+  }
+  .app{
+    width: 95%;
+    max-width: 50%;
+    min-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 20px 60px;
+  }
+
+  header.top{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:3px solid var(--text-c);
+    padding-bottom:14px;margin-bottom:18px;flex-wrap:wrap;gap:14px;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand .mark{
+    width:42px;height:42px;background:var(--brand-bg);color:var(--brand-fg);
+    display:flex;align-items:center;justify-content:center;font-family:var(--mono);
+    font-weight:700;font-size:18px;flex-shrink:0;
+  }
+  .brand h1{font-size:19px;margin:0;letter-spacing:0.02em;}
+  .brand .sub{font-family:var(--mono);font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;}
+  .headline-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+
+  button{
+    font-family:var(--sans);cursor:pointer;border:none;
+    padding:9px 15px;font-size:13px;font-weight:600;
+    border-radius:2px;transition:transform .05s ease, background .15s ease;
+  }
+  button:active{transform:translateY(1px);}
+  .btn-primary{background:var(--text-c);color:var(--bg-app);}
+  .btn-primary:hover{background:var(--steel-700);color:#fff;}
+  .btn-amber{background:var(--amber);color:#1c1200;}
+  .btn-amber:hover{background:var(--amber-dark);color:#fff;}
+  .btn-ghost{background:transparent;color:var(--text-c);border:1px solid var(--border-c);}
+  .btn-ghost:hover{background:var(--bg-alt);}
+
+  .btn-danger{background:transparent;color:var(--red);border:1px solid var(--red);padding:4px 8px;font-size:12px;}
+  .btn-danger:hover{background:var(--red);color:#fff;}
+  .btn-edit{background:transparent;color:var(--text-dim);border:1px solid var(--border-c);padding:4px 8px;font-size:12px;}
+  .btn-edit:hover{background:var(--bg-alt);color:var(--text-c);}
+  .btn-sm{padding:5px 10px;font-size:12px;}
+  .btn-toolbar{min-width:150px;text-align:center;}
+  .row-actions{display:flex;gap:4px;justify-content:center;}
+
+  nav.tabs{display:flex;gap:2px;margin-bottom:22px;border-bottom:1px solid var(--border-c);flex-wrap:wrap;}
+  nav.tabs button{
+    background:transparent;color:var(--text-dim);border-radius:0;
+    padding:10px 16px;font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:0.06em;
+    border-bottom:3px solid transparent;
+  }
+  nav.tabs button.active{color:var(--text-c);border-bottom-color:var(--amber);}
+  nav.tabs button:hover:not(.active){color:var(--text-c);}
+
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:24px;}
+  .stat{
+    background:var(--bg-panel);border:1px solid var(--border-c);border-top:3px solid var(--accent-strong);
+    padding:14px 14px 12px;
+  }
+  .stat .label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:8px;}
+  .stat .value{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--text-c);}
+  .stat.warn{border-top-color:var(--amber);}
+  .stat.warn .value{color:var(--amber-dark);}
+  .stat.bad{border-top-color:var(--red);}
+  .stat.bad .value{color:var(--red);}
+  .stat.info{border-top-color:#3060a8;}
+  .stat.info .value{color:#3060a8;}
+
+  section.panel{background:var(--bg-panel);border:1px solid var(--border-c);margin-bottom:20px;}
+  section.panel > .panel-head{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:12px 16px;border-bottom:1px solid var(--border-c);background:var(--bg-alt);
+    flex-wrap:wrap;gap:8px;
+  }
+  section.panel > .panel-head h2{font-size:13px;margin:0;text-transform:uppercase;letter-spacing:0.05em;font-family:var(--mono);}
+  section.panel > .panel-body{padding:14px 16px;}
+  .panel-head-actions{display:flex;align-items:center;gap:8px;}
+  .panel-head-actions label{font-family:var(--mono);font-size:10.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.04em;}
+  .panel-head-actions input[type=month]{padding:5px 8px;border:1px solid var(--border-c);font-size:12px;background:var(--bg-panel);color:var(--text-c);}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{
+    text-align:left;font-family:var(--mono);font-size:10.5px;text-transform:uppercase;
+    letter-spacing:0.04em;color:var(--text-dim);padding:8px 10px;border-bottom:1px solid var(--border-c);
+    white-space:nowrap;
+  }
+  thead th.sortable{cursor:pointer;user-select:none;}
+  thead th.sortable:hover{color:var(--amber);}
+  tbody td{padding:8px 10px;border-bottom:1px solid var(--bg-alt);vertical-align:middle;color:var(--text-c);}
+  tbody tr:hover{background:var(--bg-alt);}
+  td.num, th.num{text-align:right;font-family:var(--mono);}
+  .empty-row td{color:var(--text-dim);font-style:italic;text-align:center;padding:22px;}
+  .note-preview{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle;color:var(--text-dim);font-style:italic;font-size:12px;}
+
+  /* OPTIMIZED COMPACT STYLES FOR INVENTORY TAB TO PREVENT HORIZONTAL SCROLLING */
+  #view-inventory .panel-body {
+    overflow-x: visible !important;
+    padding: 8px 10px;
+  }
+  #view-inventory table {
+    table-layout: auto;
+    width: 100%;
+    font-size: 11px;
+  }
+  #view-inventory thead th {
+    padding: 6px 3px;
+    font-size: 9px;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+  }
+  #view-inventory tbody td {
+    padding: 4px 3px;
+    white-space: nowrap;
+  }
+  #view-inventory .inline-loc-select {
+    padding: 2px 3px;
+    font-size: 10.5px;
+    max-width: 95px;
+  }
+  #view-inventory .tag-badge {
+    font-size: 9px;
+    padding: 1px 3px;
+    margin: 1px;
+  }
+  #view-inventory .row-actions button {
+    padding: 2px 5px;
+    font-size: 11px;
+    min-width: 24px;
+    text-align: center;
+  }
+
+  /* HOVER-ONLY TRUNCATED PURPOSE TAGS STYLES */
+  .tags-hover-container {
+    position: relative;
+    display: inline-block;
+  }
+  .tags-dots-badge {
+    font-family: var(--mono);
+    font-weight: 700;
+    cursor: pointer;
+    background: var(--bg-alt);
+    color: var(--text-c);
+    border: 1px solid var(--border-c);
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+  }
+  .tags-dots-badge:hover {
+    background: var(--steel-600);
+    color: var(--amber);
+  }
+  .tags-tooltip {
+    display: none;
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--steel-900);
+    border: 1px solid var(--border-c);
+    padding: 6px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .tags-hover-container:hover .tags-tooltip {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    max-width: 250px;
+  }
+
+  .badge{display:inline-block;padding:2px 6px;font-size:10px;font-family:var(--mono);border-radius:2px;font-weight:600;white-space:nowrap;}
+  .badge.in{background:var(--badge-in-bg);color:var(--badge-in-fg);}
+  .badge.low{background:var(--badge-low-bg);color:var(--badge-low-fg);}
+  .badge.out{background:var(--badge-out-bg);color:var(--badge-out-fg);}
+  .badge.over{background:var(--badge-over-bg);color:var(--badge-over-fg);}
+
+  .tag-badge{display:inline-block;background:var(--bg-alt);color:var(--text-dim);border-radius:10px;padding:1px 7px;font-size:11px;margin:1px 3px 1px 0;font-family:var(--mono);white-space:nowrap;}
+
+  .form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;}
+  .field{display:flex;flex-direction:column;gap:4px;position:relative;}
+  .field label{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;color:var(--text-dim);letter-spacing:0.04em;}
+  .field input, .field select{
+    padding:8px 9px;border:1px solid var(--border-c);font-size:13px;font-family:var(--sans);
+    background:var(--bg-panel);color:var(--text-c);
+  }
+  .field textarea{
+    padding:8px 9px;border:1px solid var(--border-c);font-size:13px;font-family:var(--sans);
+    background:var(--bg-panel);color:var(--text-c);resize:vertical;min-height:56px;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--amber);outline-offset:-1px;border-color:var(--amber);}
+  .field.span2{grid-column:span 2;}
+  .field.span3{grid-column:span 3;}
+  .field small.hint{font-family:var(--mono);font-size:11px;color:var(--text-dim);}
+  .field small.err{font-family:var(--mono);font-size:11px;color:var(--red);}
+  .combo-input{width:100%;}
+
+  .toolbar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+  .toolbar input[type=text], .toolbar input[type=month], .toolbar select{
+    padding:7px 9px;border:1px solid var(--border-c);font-size:13px;background:var(--bg-panel);color:var(--text-c);
+  }
+  .toolbar .spacer{flex:1;}
+
+  .combo{position:relative;}
+  .combo-menu{
+    display:none;position:absolute;top:100%;left:0;right:0;z-index:30;
+    max-height:220px;overflow-y:auto;background:var(--bg-panel);border:1px solid var(--border-c);
+    border-top:none;box-shadow:0 6px 14px rgba(0,0,0,0.12);
+  }
+  .combo-menu.open{display:block;}
+  .combo-option{padding:8px 10px;font-size:13px;cursor:pointer;color:var(--text-c);}
+  .combo-option:hover{background:var(--bg-alt);}
+  .combo-meta{color:var(--text-dim);font-family:var(--mono);font-size:11px;}
+  .combo-empty{padding:10px;font-size:12px;color:var(--text-dim);font-style:italic;}
+
+  .tag-input-wrap{border:1px solid var(--border-c);padding:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--bg-panel);}
+  .tag-chip{background:var(--bg-alt);color:var(--text-c);padding:3px 8px;border-radius:12px;font-size:12px;display:flex;align-items:center;gap:6px;}
+  .tag-chip button{background:transparent;border:none;color:var(--text-dim);cursor:pointer;font-size:13px;padding:0;line-height:1;}
+  .tag-input-wrap input{border:none;outline:none;flex:1;min-width:120px;padding:4px;font-size:13px;background:transparent;color:var(--text-c);}
+  .tag-input-wrap input:focus{outline:none;}
+
+  .history-list{max-height:130px;overflow-y:auto;border:1px solid var(--border-c);padding:8px;font-family:var(--mono);font-size:11px;color:var(--text-dim);background:var(--bg-alt);}
+  .history-item{padding:3px 0;border-bottom:1px dashed var(--border-c);}
+  .history-item:last-child{border-bottom:none;}
+
+  .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:900px){.chart-row{grid-template-columns:1fr;}}
+  .chart-empty{color:var(--text-dim);font-style:italic;font-size:12px;padding:30px;text-align:center;}
+
+  .modal-backdrop{
+    position:fixed;inset:0;background:var(--modal-shade);display:none;
+    align-items:center;justify-content:center;z-index:50;padding:20px;overflow-y:auto;
+  }
+  .modal-backdrop.active{display:flex;}
+  .modal{background:var(--bg-panel);width:100%;max-width:480px;border-top:4px solid var(--amber);margin:auto;}
+  .modal.modal-wide{max-width:760px;}
+  .modal .modal-head{padding:14px 18px;border-bottom:1px solid var(--border-c);display:flex;justify-content:space-between;align-items:center;}
+  .modal .modal-head h3{margin:0;font-size:14px;text-transform:uppercase;font-family:var(--mono);color:var(--text-c);}
+  .modal .modal-body{padding:18px;display:flex;flex-direction:column;gap:12px;max-height:70vh;overflow-y:auto;}
+  .modal .modal-foot{padding:12px 18px;border-top:1px solid var(--border-c);display:flex;justify-content:flex-end;gap:8px;}
+  .close-x{background:transparent;border:none;font-size:18px;color:var(--text-dim);padding:2px 6px;cursor:pointer;}
+
+  .toast{
+    position:fixed;bottom:22px;right:22px;background:var(--steel-900);color:#fff;
+    padding:12px 18px;font-size:13px;border-left:4px solid var(--amber);z-index:9999;
+    transform:translateY(20px);opacity:0;transition:all .25s ease;
+  }
+  .toast.show{transform:translateY(0);opacity:1;}
+  .toast.error{border-left-color:var(--red);}
+
+  .item-hover{position:relative;display:inline-flex;align-items:center;gap:5px;cursor:default;}
+  .item-hover.has-photo{cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;}
+  .item-hover .cam{font-size:11px;opacity:0.8;}
+
+  .img-float-preview{
+    position:fixed;z-index:9999;display:none;background:var(--bg-panel);border:1px solid var(--border-c);
+    padding:5px;box-shadow:0 10px 24px rgba(0,0,0,0.28);pointer-events:none;
+  }
+  .img-float-preview img{display:block;max-width:220px;max-height:220px;object-fit:contain;}
+
+  #imgLightbox .modal-body{padding:0;max-height:none;}
+  .lightbox-inner{position:relative;max-width:92vw;max-height:92vh;}
+  .lightbox-inner img{display:block;max-width:92vw;max-height:88vh;object-fit:contain;border:2px solid var(--border-c);background:var(--bg-panel);}
+
+  .photo-row{display:flex;align-items:center;gap:12px;}
+  .photo-preview-box{width:64px;height:64px;border:1px solid var(--border-c);display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--bg-alt);flex-shrink:0;}
+  .photo-preview-box img{width:100%;height:100%;object-fit:cover;}
+  .photo-preview-box .ph-empty{font-size:10px;color:var(--text-dim);text-align:center;}
+
+  .footer-bottom-bar {
+    margin-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .footer-left {
+    flex: 1 1 300px;
+  }
+  .footer-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .btn-bottom-footer {
+    background: transparent;
+    color: var(--text-c);
+    border: 1px solid var(--border-c);
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--sans);
+    border-radius: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-bottom-footer:hover {
+    background: var(--bg-alt);
+    border-color: var(--text-dim);
+  }
+
+  .made-by-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  footer.note{font-family:var(--mono);font-size:11px;color:var(--text-dim);text-align:left;margin:0;}
+
+  .inline-loc-select{
+    padding:4px 6px;border:1px solid var(--border-c);font-size:12px;
+    background:var(--bg-panel);color:var(--text-c);border-radius:2px;
+  }
+
+  .btn-view-hist {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border-c);
+    padding: 2px 5px;
+    font-size: 11px;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .btn-view-hist:hover {
+    background: var(--bg-alt);
+    color: var(--amber);
+    border-color: var(--amber);
+  }
+
+  @media (max-width:1250px){
+    .app { min-width: 100%; max-width: 100%; }
+  }
+  @media (max-width:900px){
+    .form-grid{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:560px){
+    .form-grid{grid-template-columns:1fr;}
+    .field.span2, .field.span3{grid-column:span 1;}
+    table{font-size:12px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="brand">
+      <div class="mark">SM</div>
+      <div>
+        <h1>Stock Monitor</h1>
+        <div class="sub" data-i18n="subTitle">Gudang Bahan &amp; Dies — BPro / GEMA</div>
+      </div>
+    </div>
+    <div class="headline-actions">
+      <input type="file" id="importFile" accept=".xlsx,.xls,.zip" style="display:none;">
+      <button class="btn-ghost btn-toolbar" id="importBtn" data-i18n="importData">Import Data</button>
+      <button class="btn-amber btn-toolbar" id="exportBtn" data-i18n="exportExcel">Export to Excel</button>
+      <button class="btn-primary btn-toolbar" id="exportSaveBtn" data-i18n="exportSave">Export Save Data</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button data-view="dashboard" class="active" data-i18n="tabDashboard">Dashboard</button>
+    <button data-view="inventory" data-i18n="tabInventory">Inventory</button>
+    <button data-view="analytics" data-i18n="tabAnalytics">Item Analytics</button>
+    <button data-view="stockin" data-i18n="tabStockIn">Stock In (Masuk)</button>
+    <button data-view="stockout" data-i18n="tabStockOut">Stock Out (Keluar)</button>
+    <button data-view="pricing" data-i18n="tabPricing">Material Pricing</button>
+    <button data-view="locations" data-i18n="tabLocations">Locations</button>
+    <button data-view="vendors" data-i18n="tabVendors">Vendors</button>
+  </nav>
+
+  <!-- DASHBOARD -->
+  <div class="view active" id="view-dashboard">
+    <div class="stat-grid" id="statGrid"></div>
+
+    <section class="panel">
+      <div class="panel-head"><h2 data-i18n="dashNeedsAttention">Needs attention — low, out of stock &amp; overstocked</h2></div>
+      <div class="panel-body">
+        <table>
+          <thead><tr><th data-i18n="thCode">Code</th><th data-i18n="thItem">Item</th><th data-i18n="thCategory">Category</th><th class="num" data-i18n="thOnHand">On Hand</th><th class="num" data-i18n="thMin">Min</th><th class="num" data-i18n="thMax">Max</th><th data-i18n="thStatus">Status</th></tr></thead>
+          <tbody id="lowStockBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2 data-i18n="dashTrends">Trends</h2></div>
+      <div class="panel-body">
+        <div class="chart-row">
+          <div>
+            <div class="hint" style="font-family:var(--mono);font-size:10.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;" data-i18n="chartInOutTitle">Stock In vs Stock Out — last 6 months</div>
+            <div id="trendChart"></div>
+          </div>
+          <div>
+            <div class="hint" style="font-family:var(--mono);font-size:10.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;" data-i18n="chartValueTitle">Inventory value by category</div>
+            <div id="categoryChart"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 data-i18n="dashTopUsed">Top 10 used items</h2>
+        <div class="panel-head-actions">
+          <label data-i18n="lblFrom">From</label><input type="month" id="topItemsMonthFrom">
+          <label data-i18n="lblTo">To</label><input type="month" id="topItemsMonthTo">
+        </div>
+      </div>
+      <div class="panel-body">
+        <table>
+          <thead><tr><th>#</th><th data-i18n="thCode">Code</th><th data-i18n="thItem">Item</th><th data-i18n="thCategory">Category</th><th class="num" data-i18n="thQtyUsed">Qty Used</th></tr></thead>
+          <tbody id="topItemsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 data-i18n="dashRecentActivity">Recent activity</h2>
+        <div class="panel-head-actions">
+          <label data-i18n="lblFrom">From</label><input type="month" id="activityMonthFrom">
+          <label data-i18n="lblTo">To</label><input type="month" id="activityMonthTo">
+        </div>
+      </div>
+      <div class="panel-body">
+        <table>
+          <thead><tr><th data-i18n="thDate">Date</th><th data-i18n="thType">Type</th><th data-i18n="thCode">Code</th><th data-i18n="thItem">Item</th><th class="num" data-i18n="thQty">Qty</th></tr></thead>
+          <tbody id="recentBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- INVENTORY -->
+  <div class="view" id="view-inventory">
+    <div class="toolbar">
+      <input type="text" id="invSearch" placeholder="Search item code, name or purpose…" data-i18n-ph="phInvSearch" style="min-width:180px;">
+      <select id="invCategoryFilter"><option value="" data-i18n="optAllCategories">All categories</option></select>
+      
+      <!-- Searchable Tag Combo Filter -->
+      <div class="combo" id="invTagCombo" style="min-width:160px;">
+        <input type="text" class="combo-input" id="invTagSearch" placeholder="Filter by tag..." data-i18n-ph="phTagSearch" autocomplete="off" style="padding:7px 9px;">
+        <div class="combo-menu" id="invTagMenu"></div>
+      </div>
+
+      <select id="invLocationFilter"><option value="" data-i18n="optAllLocations">All locations</option></select>
+      
+      <!-- Status Filter Dropdown -->
+      <select id="invStatusFilter">
+        <option value="" data-i18n="optAllStatus">All status</option>
+        <option value="In Stock" data-i18n="optInStock">In Stock</option>
+        <option value="Low Stock" data-i18n="optLowStock">Low Stock</option>
+        <option value="Out of Stock" data-i18n="optOutOfStock">Out of Stock</option>
+        <option value="Overstocked" data-i18n="optOverstocked">Overstocked</option>
+      </select>
+
+      <div class="spacer"></div>
+      <button class="btn-primary" id="addItemBtn" data-i18n="btnAddItem">+ Add Item</button>
+    </div>
+    <section class="panel">
+      <div class="panel-body" style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="thCode">Item Code</th>
+              <th data-i18n="thItem">Item</th>
+              <th data-i18n="thLocation">Location</th>
+              <th data-i18n="thPurposes" style="text-align:center;">Purpose(s)</th>
+              <th data-i18n="thCategory">Category</th>
+              <th class="num" data-i18n="thPurchased">Purchased</th>
+              <th class="num" data-i18n="thUsage">Usage</th>
+              <th class="num" data-i18n="thOnHand">On Hand</th>
+              <th class="num" data-i18n="thMin">Min</th>
+              <th class="num" data-i18n="thMax">Max</th>
+              <th class="num" data-i18n="thCostPerItem">Cost Per Item</th>
+              <th class="num sortable" id="thInvValueSort"><span data-i18n="thInvValue">Inv. Value</span> <span id="invValueSortIcon">⇅</span></th>
+              <th data-i18n="thStatus">Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="inventoryBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- ITEM ANALYTICS TAB -->
+  <div class="view" id="view-analytics">
+    <div class="toolbar" style="margin-bottom:20px; gap:12px; align-items:center;">
+      <div class="combo" id="analyticsItemCombo" style="min-width:320px; flex:2;">
+        <input type="text" class="combo-input" id="analyticsItemSearch" placeholder="Select an item to view detailed analytics..." data-i18n-ph="phAnalyticsSearch" autocomplete="off" style="padding:8px 12px; font-weight:600;">
+        <div class="combo-menu" id="analyticsItemMenu"></div>
+      </div>
+      
+      <div style="display:flex; align-items:center; gap:8px;">
+        <label style="font-family:var(--mono); font-size:11px; color:var(--text-dim); text-transform:uppercase;" data-i18n="lblFrom">From</label>
+        <input type="month" id="analyticsMonthFrom">
+        <label style="font-family:var(--mono); font-size:11px; color:var(--text-dim); text-transform:uppercase;" data-i18n="lblTo">To</label>
+        <input type="month" id="analyticsMonthTo">
+      </div>
+    </div>
+
+    <div id="analyticsContent" style="display:none;">
+      <div class="stat-grid" id="analyticsStatGrid"></div>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2 id="analyticsChartTitle">Monthly Usage & Order Flow</h2>
+        </div>
+        <div class="panel-body">
+          <div id="analyticsChart"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Transactions Log (Selected Month Range)</h2>
+        </div>
+        <div class="panel-body" style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="thDate">Date</th>
+                <th data-i18n="thType">Type</th>
+                <th data-i18n="thVendor">Vendor / Kegunaan</th>
+                <th class="num" data-i18n="thQty">Qty</th>
+                <th data-i18n="thNotes">Notes</th>
+              </tr>
+            </thead>
+            <tbody id="analyticsTxBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div id="analyticsEmpty" class="chart-empty" style="background:var(--bg-panel); border:1px solid var(--border-c); padding:60px 20px;">
+      Please search or select an item above to display its analytics and stock health trends.
+    </div>
+  </div>
+
+  <!-- STOCK IN -->
+  <div class="view" id="view-stockin">
+    <section class="panel">
+      <div class="panel-head"><h2 data-i18n="siPanelTitle">Log stock received</h2></div>
+      <div class="panel-body">
+        <div class="form-grid">
+          <div class="field span3">
+            <label data-i18n="lblItem">Item (Select existing inventory item)</label>
+            <div class="combo" id="siItemCombo">
+              <input type="text" class="combo-input" id="siItemSearch" placeholder="Search existing item by code, name or purpose…" data-i18n-ph="phSiSearch" autocomplete="off">
+              <div class="combo-menu" id="siItemMenu"></div>
+            </div>
+          </div>
+          <div class="field">
+            <label data-i18n="lblVendor">Vendor / Supplier</label>
+            <select id="siVendorSelect"></select>
+          </div>
+          <div class="field">
+            <label data-i18n="lblOrderNo">Order #</label>
+            <input type="text" id="siOrderNo" placeholder="PO number" data-i18n-ph="phOrderNo">
+          </div>
+          <div class="field">
+            <label data-i18n="lblRecvDate">Received Date</label>
+            <input type="date" id="siReceivedDate">
+          </div>
+          <div class="field">
+            <label data-i18n="lblQty">Quantity</label>
+            <input type="number" id="siQty" min="0" step="1">
+          </div>
+          <div class="field span2">
+            <label data-i18n="lblNotesOpt">Notes (optional)</label>
+            <textarea id="siNotes" placeholder="Anything worth remembering about this delivery" data-i18n-ph="phSiNotes"></textarea>
+          </div>
+        </div>
+        <small class="err" id="siError" style="display:none;"></small>
+        <button class="btn-primary" id="siSubmit" style="margin-top:6px;" data-i18n="btnSiSubmit">Add stock-in entry</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 data-i18n="siLogTitle">Stock-in log (Masuk)</h2>
+        <div class="panel-head-actions">
+          <label data-i18n="lblFrom">From</label><input type="month" id="siLogMonthFrom">
+          <label data-i18n="lblTo">To</label><input type="month" id="siLogMonthTo">
+        </div>
+      </div>
+      <div class="panel-body" style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="thCode">Code</th><th data-i18n="thItem">Item</th><th data-i18n="thCategory">Category</th><th data-i18n="thVendor">Vendor</th><th data-i18n="thOrderNo">Order #</th>
+              <th data-i18n="thReceived">Received Date</th><th class="num" data-i18n="thQty">Qty</th>
+              <th class="num" data-i18n="thCost">Cost</th><th data-i18n="thNotes">Notes</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="stockInBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- STOCK OUT -->
+  <div class="view" id="view-stockout">
+    <section class="panel">
+      <div class="panel-head"><h2 data-i18n="soPanelTitle">Log stock issued / used</h2></div>
+      <div class="panel-body">
+        <div class="form-grid">
+          <div class="field span3">
+            <label data-i18n="lblItem">Item</label>
+            <div class="combo" id="soItemCombo">
+              <input type="text" class="combo-input" id="soItemSearch" placeholder="Search item by code, name or purpose…" data-i18n-ph="phSiSearch" autocomplete="off">
+              <div class="combo-menu" id="soItemMenu"></div>
+            </div>
+          </div>
+          <div class="field">
+            <label data-i18n="lblDate">Date</label>
+            <input type="date" id="soDate">
+          </div>
+          <div class="field span2">
+            <label data-i18n="lblKegunaan">Kegunaan (purpose / used for)</label>
+            <input type="text" id="soKegunaan" placeholder="e.g. Order #, job name" data-i18n-ph="phKegunaan">
+          </div>
+          <div class="field">
+            <label data-i18n="lblQty">Quantity</label>
+            <input type="number" id="soQty" min="0" step="1">
+          </div>
+          <div class="field span2">
+            <label data-i18n="lblNotesOpt">Notes (optional)</label>
+            <textarea id="soNotes" placeholder="Anything worth remembering about this usage" data-i18n-ph="phSoNotes"></textarea>
+          </div>
+        </div>
+        <small class="hint" id="soAvail"></small>
+        <small class="err" id="soError" style="display:none;"></small>
+        <div><button class="btn-primary" id="soSubmit" style="margin-top:6px;" data-i18n="btnSoSubmit">Add stock-out entry</button></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 data-i18n="soLogTitle">Stock-out log (Keluar)</h2>
+        <div class="panel-head-actions">
+          <label data-i18n="lblFrom">From</label><input type="month" id="soLogMonthFrom">
+          <label data-i18n="lblTo">To</label><input type="month" id="soLogMonthTo">
+        </div>
+      </div>
+      <div class="panel-body" style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="thCode">Code</th><th data-i18n="thItem">Item</th><th data-i18n="thCategory">Category</th><th data-i18n="thKegunaan">Kegunaan</th><th data-i18n="thDate">Date</th>
+              <th class="num" data-i18n="thQty">Qty</th><th data-i18n="thNotes">Notes</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="stockOutBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- PRICING (GLOBAL) -->
+  <div class="view" id="view-pricing">
+    <section class="panel">
+      <div class="panel-head"><h2 data-i18n="pricingTitle">Material pricing</h2></div>
+      <div class="panel-body">
+        <p class="hint" style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin:0 0 14px;" data-i18n="pricingDesc">
+          Since every item is the same raw material, one price applies to all of them. Costs and inventory value everywhere else recalculate automatically whenever you update it here.
+        </p>
+        <div class="form-grid" style="grid-template-columns:220px auto;align-items:end;">
+          <div class="field">
+            <label data-i18n="lblCurrentPrice">Current price per kg (Rp)</label>
+            <input type="number" id="globalPriceInput" min="0" step="0.01">
+          </div>
+          <div><button class="btn-primary" id="saveGlobalPrice" data-i18n="btnUpdatePrice">Update price</button></div>
+        </div>
+        <small class="err" id="globalPriceError" style="display:none;"></small>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2 data-i18n="priceHistoryTitle">Price change history</h2></div>
+      <div class="panel-body">
+        <table>
+          <thead><tr><th data-i18n="thDateTime">Date / Time</th><th class="num" data-i18n="thOldPrice">Old Price (Rp/kg)</th><th class="num" data-i18n="thNewPrice">New Price (Rp/kg)</th></tr></thead>
+          <tbody id="priceHistoryBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- LOCATIONS -->
+  <div class="view" id="view-locations">
+    <section class="panel">
+      <div class="panel-head"><h2 data-i18n="addLocationTitle">Add a storage location</h2></div>
+      <div class="panel-body">
+        <div class="form-grid">
+          <div class="field">
+            <label data-i18n="lblLocName">Location Name</label>
+            <input type="text" id="locNameInput" placeholder="e.g. Warehouse A, Rack 2" data-i18n-ph="phLocName">
+          </div>
+          <div class="field">
+            <label data-i18n="lblLocContact">Contact Person Name</label>
+            <input type="text" id="locContactInput" placeholder="Person in charge" data-i18n-ph="phLocContact">
+          </div>
+          <div class="field">
+            <label data-i18n="lblLocPhone">Phone Number</label>
+            <input type="text" id="locPhoneInput" placeholder="+62..." data-i18n-ph="phLocPhone">
+          </div>
+          <div class="field span3">
+            <label data-i18n="lblLocAddress">Address / Specific Details</label>
+            <textarea id="locAddressInput" placeholder="Full location address or notes" data-i18n-ph="phLocAddress"></textarea>
+          </div>
+        </div>
+        <small class="err" id="locError" style="display:none;"></small>
+        <button class="btn-primary" id="addLocBtn" data-i18n="btnAddLocation">+ Add Location</button>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2 data-i18n="locationListTitle">Storage Locations</h2></div>
+      <div class="panel-body" style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="thLocName">Location</th>
+              <th data-i18n="thLocAddress">Address</th>
+              <th data-i18n="thLocContact">Contact Person</th>
+              <th data-i18n="thLocPhone">Phone Number</th>
+              <th class="num" data-i18n="thLocItems">Items Stored</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="locationBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- VENDORS -->
+  <div class="view" id="view-vendors">
+    <section class="panel">
+      <div class="panel-head"><h2 data-i18n="addVendorTitle">Add a vendor</h2></div>
+      <div class="panel-body">
+        <div class="form-grid">
+          <div class="field">
+            <label data-i18n="lblVendorName">Vendor / Supplier Name</label>
+            <input type="text" id="vendorNameInput" placeholder="e.g. PT Steel Supplies" data-i18n-ph="phVendorName">
+          </div>
+          <div class="field">
+            <label data-i18n="lblVendorContact">Contact Person</label>
+            <input type="text" id="vendorContactInput" placeholder="Sales / PIC name" data-i18n-ph="phVendorContact">
+          </div>
+          <div class="field">
+            <label data-i18n="lblVendorPhone">Phone Number</label>
+            <input type="text" id="vendorPhoneInput" placeholder="+62..." data-i18n-ph="phVendorPhone">
+          </div>
+        </div>
+        <small class="err" id="vendorError" style="display:none;"></small>
+        <button class="btn-primary" id="addVendorBtn" data-i18n="btnAddVendor">+ Add Vendor</button>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2 data-i18n="vendorListTitle">Vendor list</h2></div>
+      <div class="panel-body" style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="thVendor">Vendor</th>
+              <th data-i18n="thVendorContact">Contact Person</th>
+              <th data-i18n="thVendorPhone">Phone Number</th>
+              <th class="num" data-i18n="thSiEntries">Stock-in Entries</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="vendorBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="footer-bottom-bar">
+    <div class="footer-left">
+      <footer class="note" data-i18n="footerNote">Data is stored privately to your account and stays synced across visits. "Export Save Data" produces a ZIP containing complete JSON data and raw uncompressed images. "Import Data" can restore from either this ZIP or an Excel file.</footer>
+    </div>
+    <div class="footer-actions">
+      <button class="btn-bottom-footer" id="langToggle">🌐 <span id="langText">Bahasa Indonesia</span></button>
+      <button class="btn-bottom-footer" id="themeToggle"><span id="themeIcon">☀️</span> <span id="themeText">Light Mode</span></button>
+      <button class="btn-bottom-footer" id="resetBtn" data-i18n="btnResetData">Reset Data</button>
+    </div>
+    <span class="made-by-tag">Made by Alvin</span>
+  </div>
+</div>
+
+<!-- Add/Edit item modal -->
+<div class="modal-backdrop" id="itemModal">
+  <div class="modal">
+    <div class="modal-head"><h3 id="itemModalTitle" data-i18n="modalAddItemTitle">Add new item</h3><button class="close-x" id="closeItemModal">&times;</button></div>
+    <div class="modal-body">
+      <div class="field">
+        <label data-i18n="lblPhotoOpt">Photo (optional)</label>
+        <div class="photo-row">
+          <div class="photo-preview-box" id="itemPhotoPreviewBox"><span class="ph-empty" data-i18n="phNoPhoto">No photo</span></div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <input type="file" id="itemPhotoInput" accept="image/*">
+            <button type="button" class="btn-ghost btn-sm" id="itemPhotoRemove" style="display:none;width:fit-content;" data-i18n="btnRemovePhoto">Remove photo</button>
+          </div>
+        </div>
+      </div>
+      <div class="field"><label data-i18n="lblItemCode">Item code (optional)</label><input type="text" id="itemCode" placeholder="e.g. SUPP-001" data-i18n-ph="phItemCode"></div>
+      <div class="field"><label data-i18n="lblItemName">Item name</label><input type="text" id="itemName"></div>
+      <div class="field"><label data-i18n="lblLocation">Storage Location</label><select id="itemLocationSelect"></select></div>
+      <div class="field">
+        <label data-i18n="lblCategory">Category</label>
+        <select id="itemCategory">
+          <option value="Plat">Plat</option>
+          <option value="Dies">Dies</option>
+          <option value="As">As</option>
+          <option value="Pipa">Pipa</option>
+        </select>
+      </div>
+      <div class="field"><label data-i18n="lblMinStock">Minimum stock</label><input type="number" id="itemMinStock" min="0" step="1" value="1"></div>
+      <div class="field"><label data-i18n="lblMaxStock">Maximum stock (optional)</label><input type="number" id="itemMaxStock" min="0" step="1" placeholder="Leave blank for no limit" data-i18n-ph="phMaxStock"></div>
+      <div class="field">
+        <label data-i18n="lblPurposesTags">Purpose(s) / tags</label>
+        <div class="tag-input-wrap" id="itemTagsWrap">
+          <div id="itemTagList" style="display:contents;"></div>
+          <input type="text" id="itemTagInput" placeholder="Type a purpose, press Enter" data-i18n-ph="phTagInput">
+        </div>
+        <small class="hint" data-i18n="hintTags">e.g. Bracket, Housing, Dies — press Enter or comma to add each one</small>
+      </div>
+      <div id="initialStockWrap">
+        <div class="field"><label id="itemInitQtyLabel" data-i18n="lblInitQty">Initial quantity on hand</label><input type="number" id="itemInitQty" min="0" step="1" value="0"></div>
+        <div class="field"><label data-i18n="lblWeightPerUnit">Weight per unit (kg)</label><input type="number" id="itemInitWeight" min="0" step="0.01" value="0"></div>
+      </div>
+      <small class="hint" id="itemEditNote" style="display:none;" data-i18n="hintEditItem">Editing these updates your "Opening balance" stock-in entry — a change history is kept for it.</small>
+      <small class="err" id="itemError" style="display:none;"></small>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="cancelItemModal" data-i18n="btnCancel">Cancel</button>
+      <button class="btn-primary" id="saveItemModal" data-i18n="btnSaveItem">Save item</button>
+    </div>
+  </div>
+</div>
+
+<!-- Item Transaction History Modal -->
+<div class="modal-backdrop" id="itemHistoryModal">
+  <div class="modal modal-wide">
+    <div class="modal-head">
+      <h3 id="itemHistoryTitle">Item Stock History</h3>
+      <button class="close-x" id="closeItemHistoryModal">&times;</button>
+    </div>
+    <div class="modal-body" style="max-height: 75vh;">
+      <div id="itemHistorySummary" style="font-family: var(--mono); font-size: 12px; color: var(--text-dim); margin-bottom: 8px;"></div>
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="thDate">Date</th>
+            <th data-i18n="thType">Type</th>
+            <th data-i18n="thVendor">Vendor / Kegunaan</th>
+            <th class="num" data-i18n="thQty">Qty</th>
+            <th data-i18n="thNotes">Notes</th>
+          </tr>
+        </thead>
+        <tbody id="itemHistoryBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="cancelItemHistoryModal" data-i18n="btnCancel">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Location Modal -->
+<div class="modal-backdrop" id="editLocModal">
+  <div class="modal">
+    <div class="modal-head"><h3 data-i18n="modalEditLocTitle">Edit Storage Location</h3><button class="close-x" id="closeEditLoc">&times;</button></div>
+    <div class="modal-body">
+      <div class="field"><label data-i18n="lblLocName">Location Name</label><input type="text" id="editLocName"></div>
+      <div class="field"><label data-i18n="lblLocContact">Contact Person Name</label><input type="text" id="editLocContact"></div>
+      <div class="field"><label data-i18n="lblLocPhone">Phone Number</label><input type="text" id="editLocPhone"></div>
+      <div class="field"><label data-i18n="lblLocAddress">Address / Specific Details</label><textarea id="editLocAddress"></textarea></div>
+      <small class="err" id="editLocError" style="display:none;"></small>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="cancelEditLoc" data-i18n="btnCancel">Cancel</button>
+      <button class="btn-primary" id="saveEditLoc" data-i18n="btnSaveChanges">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Vendor Modal -->
+<div class="modal-backdrop" id="editVendorModal">
+  <div class="modal">
+    <div class="modal-head"><h3 data-i18n="modalEditVendorTitle">Edit Vendor / Supplier</h3><button class="close-x" id="closeEditVendor">&times;</button></div>
+    <div class="modal-body">
+      <div class="field"><label data-i18n="lblVendorName">Vendor Name</label><input type="text" id="editVendorName"></div>
+      <div class="field"><label data-i18n="lblVendorContact">Contact Person Name</label><input type="text" id="editVendorContact"></div>
+      <div class="field"><label data-i18n="lblVendorPhone">Phone Number</label><input type="text" id="editVendorPhone"></div>
+      <small class="err" id="editVendorError" style="display:none;"></small>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="cancelEditVendor" data-i18n="btnCancel">Cancel</button>
+      <button class="btn-primary" id="saveEditVendor" data-i18n="btnSaveChanges">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit stock-in modal -->
+<div class="modal-backdrop" id="editSiModal">
+  <div class="modal">
+    <div class="modal-head"><h3 id="editSiTitle" data-i18n="modalEditSiTitle">Edit stock-in entry</h3><button class="close-x" id="closeEditSi">&times;</button></div>
+    <div class="modal-body">
+      <div class="field"><label data-i18n="lblVendor">Vendor / Supplier</label><select id="editSiVendor"></select></div>
+      <div class="field"><label data-i18n="lblOrderNo">Order #</label><input type="text" id="editSiOrderNo"></div>
+      <div class="field"><label data-i18n="lblRecvDate">Received Date</label><input type="date" id="editSiReceivedDate"></div>
+      <div class="field"><label data-i18n="lblQty">Quantity</label><input type="number" id="editSiQty" min="0" step="1"></div>
+      <div class="field"><label data-i18n="lblNotes">Notes</label><textarea id="editSiNotes"></textarea></div>
+      <small class="err" id="editSiError" style="display:none;"></small>
+      <div class="field">
+        <label data-i18n="lblHistory">History</label>
+        <div class="history-list" id="editSiHistory"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="cancelEditSi" data-i18n="btnCancel">Cancel</button>
+      <button class="btn-primary" id="saveEditSi" data-i18n="btnSaveChanges">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit stock-out modal -->
+<div class="modal-backdrop" id="editSoModal">
+  <div class="modal">
+    <div class="modal-head"><h3 data-i18n="modalEditSoTitle">Edit stock-out entry</h3><button class="close-x" id="closeEditSo">&times;</button></div>
+    <div class="modal-body">
+      <div class="field"><label data-i18n="lblDate">Date</label><input type="date" id="editSoDate"></div>
+      <div class="field"><label data-i18n="lblKegunaan">Kegunaan (purpose / used for)</label><input type="text" id="editSoKegunaan"></div>
+      <div class="field"><label data-i18n="lblQty">Quantity</label><input type="number" id="editSoQty" min="0" step="1"></div>
+      <div class="field"><label data-i18n="lblNotes">Notes</label><textarea id="editSoNotes"></textarea></div>
+      <small class="err" id="editSoError" style="display:none;"></small>
+      <div class="field">
+        <label data-i18n="lblHistory">History</label>
+        <div class="history-list" id="editSoHistory"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="cancelEditSo" data-i18n="btnCancel">Cancel</button>
+      <button class="btn-primary" id="saveEditSo" data-i18n="btnSaveChanges">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Image lightbox -->
+<div class="modal-backdrop" id="imgLightbox">
+  <div class="lightbox-inner" style="display:flex; flex-direction:column; align-items:center;">
+    <div style="margin-bottom: 10px; display:flex; gap:10px; z-index: 60;">
+      <button class="btn-primary" id="zoomOutBtn">🔍 -</button>
+      <button class="btn-primary" id="zoomResetBtn">Reset</button>
+      <button class="btn-primary" id="zoomInBtn">🔍 +</button>
+      <button class="btn-danger" id="closeLightbox" style="font-size: 16px;">&times; Close</button>
+    </div>
+    <div style="overflow: auto; max-width: 92vw; max-height: 80vh;">
+      <img id="imgLightboxImg" src="" alt="" style="transition: transform 0.2s ease; transform-origin: top center;">
+    </div>
+  </div>
+</div>
+
+<!-- Floating hover preview -->
+<div class="img-float-preview" id="imgFloatPreview"><img id="imgFloatPreviewImg" src="" alt=""></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  // Fixed categories list
+  const CATEGORIES = ["Plat", "Dies", "As", "Pipa"];
+
+  // ---------- i18n translation strings ----------
+  const translations = {
+    en: {
+      subTitle: "Gudang Bahan & Dies — BPro / GEMA",
+      importData: "Import Data",
+      exportExcel: "Export to Excel",
+      exportSave: "Export Save Data",
+      tabDashboard: "Dashboard",
+      tabInventory: "Inventory",
+      tabAnalytics: "Item Analytics",
+      tabStockIn: "Stock In (Masuk)",
+      tabStockOut: "Stock Out (Keluar)",
+      tabPricing: "Material Pricing",
+      tabLocations: "Locations",
+      tabVendors: "Vendors",
+      dashNeedsAttention: "Needs attention — low, out of stock & overstocked",
+      dashTrends: "Trends",
+      chartInOutTitle: "Stock In vs Stock Out — last 6 months",
+      chartValueTitle: "Inventory value by category",
+      dashTopUsed: "Top 10 used items",
+      dashRecentActivity: "Recent activity",
+      lblFrom: "From",
+      lblTo: "To",
+      thCode: "Code",
+      thItem: "Item",
+      thLocation: "Location",
+      thCategory: "Category",
+      thOnHand: "On Hand",
+      thMin: "Min",
+      thMax: "Max",
+      thStatus: "Status",
+      thQtyUsed: "Qty Used",
+      thDate: "Date",
+      thType: "Type",
+      thQty: "Qty",
+      thPurposes: "Purpose(s)",
+      thPurchased: "Purchased",
+      thUsage: "Usage",
+      thCostPerItem: "Cost Per Item",
+      thInvValue: "Inv. Value",
+      thVendor: "Vendor",
+      thOrderNo: "Order #",
+      thReceived: "Received Date",
+      thCost: "Cost",
+      thNotes: "Notes",
+      thKegunaan: "Kegunaan",
+      thDateTime: "Date / Time",
+      thOldPrice: "Old Price (Rp/kg)",
+      thNewPrice: "New Price (Rp/kg)",
+      thSiEntries: "Stock-in Entries",
+      phInvSearch: "Search item code, name or purpose…",
+      phTagSearch: "Filter by tag...",
+      phAnalyticsSearch: "Select an item to view detailed analytics...",
+      optAllCategories: "All categories",
+      optAllTags: "All tags",
+      optAllLocations: "All locations",
+      optUnassignedLoc: "Unassigned",
+      optAllStatus: "All status",
+      optInStock: "In Stock",
+      optLowStock: "Low Stock",
+      optOutOfStock: "Out of Stock",
+      optOverstocked: "Overstocked",
+      btnAddItem: "+ Add Item",
+      siPanelTitle: "Log stock received",
+      lblItem: "Item (Select existing inventory item)",
+      phSiSearch: "Search existing item by code, name or purpose…",
+      lblVendor: "Vendor / Supplier",
+      lblOrderNo: "Order #",
+      phOrderNo: "PO number",
+      lblRecvDate: "Received Date",
+      lblQty: "Quantity",
+      lblNotesOpt: "Notes (optional)",
+      phSiNotes: "Anything worth remembering about this delivery",
+      btnSiSubmit: "Add stock-in entry",
+      siLogTitle: "Stock-in log (Masuk)",
+      soPanelTitle: "Log stock issued / used",
+      lblDate: "Date",
+      lblKegunaan: "Kegunaan (purpose / used for)",
+      phKegunaan: "e.g. Order #, job name",
+      phSoNotes: "Anything worth remembering about this usage",
+      btnSoSubmit: "Add stock-out entry",
+      soLogTitle: "Stock-out log (Keluar)",
+      pricingTitle: "Material pricing",
+      pricingDesc: "Since every item is the same raw material, one price applies to all of them. Costs and inventory value everywhere else recalculate automatically whenever you update it here.",
+      lblCurrentPrice: "Current price per kg (Rp)",
+      btnUpdatePrice: "Update price",
+      priceHistoryTitle: "Price change history",
+      addVendorTitle: "Add a vendor",
+      lblVendorName: "Vendor / Supplier Name",
+      phVendorName: "e.g. PT Steel Supplies",
+      lblVendorContact: "Contact Person",
+      phVendorContact: "Sales / PIC name",
+      lblVendorPhone: "Phone Number",
+      phVendorPhone: "+62...",
+      btnAddVendor: "+ Add Vendor",
+      vendorListTitle: "Vendor list",
+      modalEditVendorTitle: "Edit Vendor / Supplier",
+      thVendorContact: "Contact Person",
+      thVendorPhone: "Phone Number",
+      addLocationTitle: "Add a storage location",
+      lblLocName: "Location Name",
+      phLocName: "e.g. Warehouse A, Rack 2",
+      lblLocContact: "Contact Person Name",
+      phLocContact: "Person in charge",
+      lblLocPhone: "Phone Number",
+      phLocPhone: "+62...",
+      lblLocAddress: "Address / Specific Details",
+      phLocAddress: "Full location address or notes",
+      btnAddLocation: "+ Add Location",
+      locationListTitle: "Storage Locations",
+      modalEditLocTitle: "Edit Storage Location",
+      thLocName: "Location",
+      thLocAddress: "Address",
+      thLocContact: "Contact Person",
+      thLocPhone: "Phone Number",
+      thLocItems: "Items Stored",
+      footerNote: "Data is stored privately to your account and stays synced across visits. \"Export Save Data\" produces a ZIP containing complete JSON data and raw uncompressed images. \"Import Data\" can restore from either this ZIP or an Excel file.",
+      btnResetData: "Reset Data",
+      modalAddItemTitle: "Add new item",
+      modalEditItemTitle: "Edit item",
+      lblPhotoOpt: "Photo (optional)",
+      phNoPhoto: "No photo",
+      btnRemovePhoto: "Remove photo",
+      lblItemCode: "Item code (optional)",
+      phItemCode: "e.g. SUPP-001",
+      lblItemName: "Item name",
+      lblLocation: "Storage Location",
+      lblCategory: "Category",
+      lblMinStock: "Minimum stock",
+      lblMaxStock: "Maximum stock (optional)",
+      phMaxStock: "Leave blank for no limit",
+      lblPurposesTags: "Purpose(s) / tags",
+      phTagInput: "Type a purpose, press Enter",
+      hintTags: "e.g. Bracket, Housing, Dies — press Enter or comma to add each one",
+      lblInitQty: "Initial quantity on hand",
+      lblInitQtyOb: "Initial quantity on hand (opening balance)",
+      lblWeightPerUnit: "Weight per unit (kg)",
+      hintEditItem: "Editing these updates your \"Opening balance\" stock-in entry — a change history is kept for it.",
+      btnCancel: "Cancel",
+      btnSaveItem: "Save item",
+      btnSaveChanges: "Save changes",
+      modalEditSiTitle: "Edit stock-in entry",
+      modalEditObTitle: "Edit opening balance entry",
+      lblNotes: "Notes",
+      lblHistory: "History",
+      modalEditSoTitle: "Edit stock-out entry",
+      statUniqueItems: "Unique Items",
+      statUnitsOnHand: "Units On Hand",
+      statInvValue: "Inventory Value",
+      statLowStock: "Low Stock",
+      statOutOfStock: "Out of Stock",
+      statOverstocked: "Overstocked",
+      statusLow: "LOW STOCK",
+      statusOut: "OUT OF STOCK",
+      statusOver: "OVERSTOCKED",
+      statusIn: "IN STOCK",
+      selectVendorDefault: "Select vendor…",
+      selectVendorAdd: "+ Add new vendor…",
+      selectLocDefault: "-- Select location --",
+      btnEdit: "✎",
+      btnDelete: "✖",
+      pending: "Pending"
+    },
+    id: {
+      subTitle: "Gudang Bahan & Dies — BPro / GEMA",
+      importData: "Impor Data",
+      exportExcel: "Ekspor ke Excel",
+      exportSave: "Ekspor File Simpanan",
+      tabDashboard: "Dasbor",
+      tabInventory: "Inventaris",
+      tabAnalytics: "Analisis Item",
+      tabStockIn: "Barang Masuk",
+      tabStockOut: "Barang Keluar",
+      tabPricing: "Harga Material",
+      tabLocations: "Lokasi Storage",
+      tabVendors: "Pemasok",
+      dashNeedsAttention: "Perlu Perhatian — Stok Menipis, Habis & Berlebih",
+      dashTrends: "Tren",
+      chartInOutTitle: "Barang Masuk vs Barang Keluar — 6 bulan terakhir",
+      chartValueTitle: "Nilai inventaris berdasarkan kategori",
+      dashTopUsed: "10 Barang Paling Banyak Digunakan",
+      dashRecentActivity: "Aktivitas Terakhir",
+      lblFrom: "Dari",
+      lblTo: "Sampai",
+      thCode: "Kode",
+      thItem: "Barang",
+      thLocation: "Lokasi",
+      thCategory: "Kategori",
+      thOnHand: "Stok Ada",
+      thMin: "Min",
+      thMax: "Maks",
+      thStatus: "Status",
+      thQtyUsed: "Jml Terpakai",
+      thDate: "Tanggal",
+      thType: "Tipe",
+      thQty: "Jumlah",
+      thPurposes: "Kegunaan",
+      thPurchased: "Dibeli",
+      thUsage: "Penggunaan",
+      thCostPerItem: "Harga per Barang",
+      thInvValue: "Nilai Inventaris",
+      thVendor: "Pemasok",
+      thOrderNo: "No. Pesanan",
+      thReceived: "Tgl Diterima",
+      thCost: "Biaya",
+      thNotes: "Catatan",
+      thKegunaan: "Kegunaan",
+      thDateTime: "Tanggal / Waktu",
+      thOldPrice: "Harga Lama (Rp/kg)",
+      thNewPrice: "Harga Baru (Rp/kg)",
+      thSiEntries: "Catatan Barang Masuk",
+      phInvSearch: "Cari kode, nama barang…",
+      phTagSearch: "Filter tag...",
+      phAnalyticsSearch: "Pilih barang untuk melihat analitik detail...",
+      optAllCategories: "Semua kategori",
+      optAllTags: "Semua label/tag",
+      optAllLocations: "Semua lokasi",
+      optUnassignedLoc: "Tanpa Lokasi",
+      optAllStatus: "Semua status",
+      optInStock: "Stok Tersedia",
+      optLowStock: "Stok Menipis",
+      optOutOfStock: "Stok Habis",
+      optOverstocked: "Stok Berlebih",
+      btnAddItem: "+ Tambah Barang",
+      siPanelTitle: "Catat Barang Masuk",
+      lblItem: "Barang (Pilih barang inventaris)",
+      phSiSearch: "Cari barang berdasarkan kode, nama atau kegunaan…",
+      lblVendor: "Pemasok / Supplier",
+      lblOrderNo: "No. Pesanan",
+      phOrderNo: "Nomor PO",
+      lblRecvDate: "Tanggal Diterima",
+      lblQty: "Jumlah",
+      lblNotesOpt: "Catatan (opsional)",
+      phSiNotes: "Sesuatu yang perlu diingat tentang pengiriman ini",
+      btnSiSubmit: "Tambah Barang Masuk",
+      siLogTitle: "Log Barang Masuk",
+      soPanelTitle: "Catat Barang Keluar / Terpakai",
+      lblDate: "Tanggal",
+      lblKegunaan: "Kegunaan / Untuk Pekerjaan",
+      phKegunaan: "misal: No. Order, nama pekerjaan",
+      phSoNotes: "Sesuatu yang perlu diingat tentang penggunaan ini",
+      btnSoSubmit: "Tambah Barang Keluar",
+      soLogTitle: "Log Barang Keluar",
+      pricingTitle: "Harga Material",
+      pricingDesc: "Karena semua item menggunakan bahan baku yang sama, satu harga berlaku untuk semuanya. Biaya dan nilai inventaris di tempat lain dihitung ulang secara otomatis saat Anda memperbaruinya di sini.",
+      lblCurrentPrice: "Harga saat ini per kg (Rp)",
+      btnUpdatePrice: "Perbarui Harga",
+      priceHistoryTitle: "Riwayat Perubahan Harga",
+      addVendorTitle: "Tambah Pemasok",
+      lblVendorName: "Nama Pemasok / Supplier",
+      phVendorName: "misal: PT Steel Supplies",
+      lblVendorContact: "Kontak Person",
+      phVendorContact: "Nama Sales / PIC",
+      lblVendorPhone: "Nomor Telepon",
+      phVendorPhone: "+62...",
+      btnAddVendor: "+ Tambah Pemasok",
+      vendorListTitle: "Daftar Pemasok",
+      modalEditVendorTitle: "Edit Pemasok / Supplier",
+      thVendorContact: "Kontak Person",
+      thVendorPhone: "Nomor Telepon",
+      addLocationTitle: "Tambah Lokasi Penyimpanan",
+      lblLocName: "Nama Lokasi",
+      phLocName: "misal: Gudang A, Rak 2",
+      lblLocContact: "Nama Kontak Person",
+      phLocContact: "Penanggung jawab",
+      lblLocPhone: "Nomor Telepon",
+      phLocPhone: "+62...",
+      lblLocAddress: "Alamat / Detail Lokasi",
+      phLocAddress: "Alamat lengkap atau catatan lokasi",
+      btnAddLocation: "+ Tambah Lokasi",
+      locationListTitle: "Lokasi Penyimpanan",
+      modalEditLocTitle: "Edit Lokasi Storage",
+      thLocName: "Lokasi",
+      thLocAddress: "Alamat",
+      thLocContact: "Kontak Person",
+      thLocPhone: "Nomor Telepon",
+      thLocItems: "Jumlah Barang Stored",
+      footerNote: "Data disimpan secara pribadi di akun Anda dan tetap tersinkronisasi. \"Ekspor File Simpanan\" menghasilkan file ZIP berisi data JSON lengkap dan gambar. \"Impor Data\" dapat memulihkan dari ZIP ini atau file Excel.",
+      btnResetData: "Reset Data",
+      modalAddItemTitle: "Tambah Barang Baru",
+      modalEditItemTitle: "Edit Barang",
+      lblPhotoOpt: "Foto (opsional)",
+      phNoPhoto: "Tidak ada foto",
+      btnRemovePhoto: "Hapus foto",
+      lblItemCode: "Kode barang (opsional)",
+      phItemCode: "misal: SUPP-001",
+      lblItemName: "Nama barang",
+      lblLocation: "Lokasi Penyimpanan",
+      lblCategory: "Kategori",
+      lblMinStock: "Stok minimum",
+      lblMaxStock: "Stok maksimum (opsional)",
+      phMaxStock: "Biarkan kosong jika tidak ada batas",
+      lblPurposesTags: "Kegunaan / Label",
+      phTagInput: "Ketik kegunaan, tekan Enter",
+      hintTags: "misal: Bracket, Housing, Dies — tekan Enter atau koma untuk menambah",
+      lblInitQty: "Jumlah stok awal",
+      lblInitQtyOb: "Jumlah stok awal (saldo awal)",
+      lblWeightPerUnit: "Berat per unit (kg)",
+      hintEditItem: "Mengedit ini akan memperbarui catatan 'Saldo awal' barang masuk Anda — riwayat perubahan tetap tersimpan.",
+      btnCancel: "Batal",
+      btnSaveItem: "Simpan Barang",
+      btnSaveChanges: "Simpan Perubahan",
+      modalEditSiTitle: "Edit Catatan Barang Masuk",
+      modalEditObTitle: "Edit Catatan Saldo Awal",
+      lblNotes: "Catatan",
+      lblHistory: "Riwayat",
+      modalEditSoTitle: "Edit Catatan Barang Keluar",
+      statUniqueItems: "Total Item Unique",
+      statUnitsOnHand: "Stok Tersedia",
+      statInvValue: "Nilai Inventaris",
+      statLowStock: "Stok Menipis",
+      statOutOfStock: "Stok Habis",
+      statOverstocked: "Stok Berlebih",
+      statusLow: "STOK MENIPIS",
+      statusOut: "STOK HABIS",
+      statusOver: "STOK BERLEBIH",
+      statusIn: "STOK TERSEDIA",
+      selectVendorDefault: "Pilih pemasok…",
+      selectVendorAdd: "+ Tambah pemasok baru…",
+      selectLocDefault: "-- Pilih lokasi --",
+      btnEdit: "✎",
+      btnDelete: "✖",
+      pending: "Menunggu"
+    }
+  };
+
+  let currentLang = 'en';
+
+  function t(key){
+    return (translations[currentLang] && translations[currentLang][key]) || translations.en[key] || key;
+  }
+
+  function applyLanguage(){
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (key && translations[currentLang][key]) {
+        el.textContent = translations[currentLang][key];
+      }
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+      const key = el.getAttribute('data-i18n-ph');
+      if (key && translations[currentLang][key]) {
+        el.placeholder = translations[currentLang][key];
+      }
+    });
+    document.getElementById('langText').textContent = currentLang === 'en' ? 'Bahasa Indonesia' : 'English';
+  }
+
+  // ---------- Universal Storage Wrapper ----------
+  const storageApi = {
+    async get(key) {
+      if (typeof window !== 'undefined' && window.storage && typeof window.storage.get === 'function') {
+        try {
+          const res = await window.storage.get(key, false);
+          if (res) return res;
+        } catch(e) {}
+      }
+      try {
+        const val = localStorage.getItem(key);
+        return val !== null ? { value: val } : null;
+      } catch(e) {
+        return null;
+      }
+    },
+    async set(key, value) {
+      let winStorageSuccess = false;
+      if (typeof window !== 'undefined' && window.storage && typeof window.storage.set === 'function') {
+        try {
+          await window.storage.set(key, value, false);
+          winStorageSuccess = true;
+        } catch(e) {}
+      }
+      try {
+        localStorage.setItem(key, value);
+      } catch(e) {
+        if (!winStorageSuccess) throw e;
+      }
+    },
+    async delete(key) {
+      if (typeof window !== 'undefined' && window.storage && typeof window.storage.delete === 'function') {
+        try { await window.storage.delete(key, false); } catch(e) {}
+      }
+      try { localStorage.removeItem(key); } catch(e) {}
+    },
+    async list(prefix) {
+      if (typeof window !== 'undefined' && window.storage && typeof window.storage.list === 'function') {
+        try {
+          const res = await window.storage.list(prefix, false);
+          if (res && res.keys) return res;
+        } catch(e) {}
+      }
+      try {
+        const keys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith(prefix)) keys.push(k);
+        }
+        return { keys };
+      } catch(e) {
+        return { keys: [] };
+      }
+    }
+  };
+
+  // ---------- state ----------
+  let items = [];         // {id, code, name, category, locationId, minStock, maxStock, weightKg, purposes:[]}
+  let stockIn = [];       // {id, itemId, vendor, orderNo, receivedDate, qty, notes, history:[], createdAt}
+  let stockOut = [];      // {id, itemId, kegunaan, date, qty, notes, history:[], createdAt}
+  let vendors = [];       // {id, name, contactName, phone}
+  let locations = [];     // {id, name, address, contactName, phone}
+  let itemImages = {};    // itemId -> dataURL
+  let globalPricePerKg = 0;
+  let globalPriceHistory = []; // {ts, oldPrice, newPrice}
+
+  let invSortDirection = 'none'; // 'none', 'asc', 'desc'
+  let selectedTagFilter = '';
+
+  let siSelectedItemId = '';
+  let soSelectedItemId = '';
+  let analyticsSelectedItemId = '';
+  let analyticsMonthInit = false;
+  let siLogMonthInit = false;
+  let soLogMonthInit = false;
+  let editingItemId = null;
+  let editingLocId = null;
+  let editingVendorId = null;
+  let itemTags = [];
+  let editingStockInId = null;
+  let editingStockOutId = null;
+  let itemPhotoTemp = '';
+  let itemPhotoChanged = false;
+
+  const PHOTO_CHUNK_SIZE = 28000;
+
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+  const fmtInt = n => Number(n||0).toLocaleString('en-US');
+  const fmtRp = n => 'Rp ' + Number(n||0).toLocaleString('en-US', {maximumFractionDigits:0});
+  const fmtKg = n => Number(n||0).toLocaleString('en-US', {maximumFractionDigits:2}) + ' kg';
+  const todayISO = () => new Date().toISOString().slice(0,10);
+  const monthOf = d => (d && d.length>=7) ? d.slice(0,7) : '';
+  const nowStamp = () => new Date().toLocaleString('en-US', {month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit'});
+
+  function escapeHtml(s){
+    return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function serializeHistory(hist){
+    return (hist||[]).map(h=> `${h.ts}::${h.summary}`).join(' | ');
+  }
+  function parseHistoryString(str){
+    if(!str) return [];
+    return String(str).split(' | ').map(s=>{
+      const idx = s.indexOf('::');
+      if(idx===-1) return null;
+      return {ts:s.slice(0,idx), summary:s.slice(idx+2)};
+    }).filter(Boolean);
+  }
+
+  // ---------- persistence ----------
+  async function loadData(){
+    try{
+      const res = await storageApi.get('stock-monitor-data');
+      if(res && res.value){
+        const parsed = JSON.parse(res.value);
+        items = (parsed.items || []).map(it => ({code:'', purposes:[], locationId:'', maxStock:'', weightKg:0, category:'Plat', ...it}));
+        stockIn = (parsed.stockIn || []).map(x => ({receivedDate: x.receivedDate || x.orderedDate || '', notes:'', history:[], createdAt: x.createdAt||0, ...x}));
+        stockOut = (parsed.stockOut || []).map(x => ({notes:'', history:[], createdAt: x.createdAt||0, ...x}));
+        vendors = (parsed.vendors || []).map(v => ({contactName:'', phone:'', ...v}));
+        locations = parsed.locations || [];
+        globalPricePerKg = Number(parsed.globalPricePerKg||0);
+        globalPriceHistory = parsed.globalPriceHistory || [];
+      }
+    }catch(e){}
+    try{
+      const l = await storageApi.get('stock-monitor-lang');
+      if(l && l.value && translations[l.value]){
+        currentLang = l.value;
+      }
+    }catch(e){}
+    try{
+      const t = await storageApi.get('stock-monitor-theme');
+      if(t && t.value === 'light'){
+        document.body.classList.add('light-theme');
+        document.getElementById('themeIcon').textContent = '🌙';
+        document.getElementById('themeText').textContent = 'Dark Mode';
+      } else {
+        document.body.classList.remove('light-theme');
+        document.getElementById('themeIcon').textContent = '☀️';
+        document.getElementById('themeText').textContent = 'Light Mode';
+      }
+    }catch(e){}
+    try{
+      const listRes = await storageApi.list('item-image:');
+      const keys = (listRes && listRes.keys) || [];
+      for(const k of keys){
+        try{
+          const r = await storageApi.get(k);
+          if(r && r.value) itemImages[k.slice('item-image:'.length)] = r.value;
+        }catch(e){}
+      }
+    }catch(e){}
+    applyLanguage();
+  }
+
+  let saveTimer = null;
+  function saveData(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(async () => {
+      try{
+        await storageApi.set('stock-monitor-data', JSON.stringify({items, stockIn, stockOut, vendors, locations, globalPricePerKg, globalPriceHistory}));
+      }catch(e){
+        showToast('Could not save — changes may be lost on reload.', true);
+      }
+    }, 150);
+  }
+
+  document.getElementById('langToggle').addEventListener('click', async ()=>{
+    currentLang = currentLang === 'en' ? 'id' : 'en';
+    applyLanguage();
+    renderAll();
+    try{ await storageApi.set('stock-monitor-lang', currentLang); }catch(e){}
+  });
+
+  document.getElementById('themeToggle').addEventListener('click', async ()=>{
+    const isLight = document.body.classList.toggle('light-theme');
+    document.getElementById('themeIcon').textContent = isLight ? '🌙' : '☀️';
+    document.getElementById('themeText').textContent = isLight ? 'Dark Mode' : 'Light Mode';
+    try{ await storageApi.set('stock-monitor-theme', isLight ? 'light' : 'dark'); }catch(e){}
+  });
+
+  // ---------- computation ----------
+  function itemStats(item){
+    const ins = stockIn.filter(x => x.itemId === item.id);
+    const outs = stockOut.filter(x => x.itemId === item.id);
+    const purchased = ins.reduce((s,x)=>s+Number(x.qty||0),0);
+    const totalWeight = purchased * Number(item.weightKg||0);
+    const totalCost = totalWeight * Number(globalPricePerKg||0);
+    const avgCost = purchased > 0 ? totalCost/purchased : 0;
+    const sold = outs.reduce((s,x)=>s+Number(x.qty||0),0);
+    const onHand = purchased - sold;
+    const invValue = onHand * avgCost;
+    let status = 'In Stock';
+    const maxStock = item.maxStock===''||item.maxStock==null ? null : Number(item.maxStock);
+    if(maxStock!=null && onHand > maxStock) status = 'Overstocked';
+    else if(onHand <= 0) status = 'Out of Stock';
+    else if(onHand <= Number(item.minStock||0)) status = 'Low Stock';
+    return {purchased, totalWeight, totalCost, avgCost, sold, onHand, invValue, status};
+  }
+  function firstInDate(itemId){
+    const ins = stockIn.filter(x=>x.itemId===itemId);
+    if(!ins.length) return null;
+    return ins.reduce((a,b)=> (a.receivedDate||'') < (b.receivedDate||'') ? a : b);
+  }
+  function openingBalanceEntry(itemId){
+    return stockIn.find(x=>x.itemId===itemId && x.vendor==='Opening balance') || null;
+  }
+
+  let toastTimer=null;
+  function showToast(msg, isError){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=> t.classList.remove('show'), 2600);
+  }
+
+  // ---------- tabs ----------
+  document.querySelectorAll('nav.tabs button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('view-'+btn.dataset.view).classList.add('active');
+      if(btn.dataset.view==='dashboard') renderDashboard();
+      if(btn.dataset.view==='inventory') renderInventory();
+      if(btn.dataset.view==='analytics') renderItemAnalytics();
+      if(btn.dataset.view==='stockin') renderStockIn();
+      if(btn.dataset.view==='stockout') renderStockOut();
+      if(btn.dataset.view==='pricing') renderPricing();
+      if(btn.dataset.view==='locations') renderLocations();
+      if(btn.dataset.view==='vendors') renderVendors();
+    });
+  });
+
+  // ---------- searchable item combo ----------
+  function initCombo(inputId, menuId, getSelectedId, setSelectedId, onChangeExtra){
+    const input = document.getElementById(inputId);
+    const menu = document.getElementById(menuId);
+    function optionsFor(filter){
+      const f = (filter||'').toLowerCase();
+      return items
+        .filter(it => !f || it.name.toLowerCase().includes(f) || (it.code||'').toLowerCase().includes(f) || (it.purposes||[]).some(p=>p.toLowerCase().includes(f)) || (it.category||'').toLowerCase().includes(f))
+        .sort((a,b)=>a.name.localeCompare(b.name))
+        .slice(0,60);
+    }
+    function openMenu(){
+      const opts = optionsFor(input.value);
+      if(!opts.length){
+        menu.innerHTML = `<div class="combo-empty">${currentLang==='en'?'No matching items':'Tidak ada barang yang cocok'}</div>`;
+      }else{
+        menu.innerHTML = opts.map(it=>{
+          const tagStr = (it.purposes||[]).slice(0,3).join(', ');
+          const codePrefix = it.code ? `[${escapeHtml(it.code)}] ` : '';
+          return `<div class="combo-option" data-id="${it.id}">${codePrefix}${escapeHtml(it.name)}${tagStr? ' <span class="combo-meta">('+escapeHtml(tagStr)+')</span>':''}</div>`;
+        }).join('');
+      }
+      menu.classList.add('open');
+      menu.querySelectorAll('.combo-option').forEach(opt=>{
+        opt.addEventListener('mousedown', (ev)=>{
+          ev.preventDefault();
+          const id = opt.getAttribute('data-id');
+          const it = items.find(i=>i.id===id);
+          input.value = it ? (it.code ? `[${it.code}] ${it.name}` : it.name) : '';
+          setSelectedId(id);
+          menu.classList.remove('open');
+          if(onChangeExtra) onChangeExtra();
+        });
+      });
+    }
+    input.addEventListener('focus', openMenu);
+    input.addEventListener('input', ()=>{
+      setSelectedId('');
+      if(onChangeExtra) onChangeExtra();
+      openMenu();
+    });
+    input.addEventListener('blur', ()=>{ setTimeout(()=>menu.classList.remove('open'), 120); });
+  }
+  initCombo('siItemSearch','siItemMenu', ()=>siSelectedItemId, (id)=>{siSelectedItemId=id;});
+  initCombo('soItemSearch','soItemMenu', ()=>soSelectedItemId, (id)=>{soSelectedItemId=id;}, ()=>updateAvailability());
+  initCombo('analyticsItemSearch','analyticsItemMenu', ()=>analyticsSelectedItemId, (id)=>{analyticsSelectedItemId=id;}, ()=>renderItemAnalytics());
+  
+  function resetItemCombo(inputId){ document.getElementById(inputId).value = ''; }
+
+  // ---------- searchable tag combo filter ----------
+  function initTagCombo(){
+    const input = document.getElementById('invTagSearch');
+    const menu = document.getElementById('invTagMenu');
+
+    function openTagMenu(){
+      const filter = input.value.trim().toLowerCase();
+      const allTags = Array.from(new Set(items.flatMap(i=>i.purposes||[]).filter(Boolean))).sort();
+      const matched = allTags.filter(tg => !filter || tg.toLowerCase().includes(filter));
+
+      let html = `<div class="combo-option" data-tag=""><em>${t('optAllTags')}</em></div>`;
+      if(!matched.length && filter){
+        html += `<div class="combo-empty">${currentLang==='en'?'No tags match':'Tidak ada tag yang cocok'}</div>`;
+      } else {
+        html += matched.map(tg => `<div class="combo-option" data-tag="${escapeHtml(tg)}">${escapeHtml(tg)}</div>`).join('');
+      }
+      menu.innerHTML = html;
+      menu.classList.add('open');
+
+      menu.querySelectorAll('.combo-option').forEach(opt => {
+        opt.addEventListener('mousedown', (ev) => {
+          ev.preventDefault();
+          const tagVal = opt.getAttribute('data-tag');
+          selectedTagFilter = tagVal;
+          input.value = tagVal;
+          menu.classList.remove('open');
+          renderInventory();
+        });
+      });
+    }
+
+    input.addEventListener('focus', openTagMenu);
+    input.addEventListener('input', () => {
+      selectedTagFilter = input.value.trim();
+      openTagMenu();
+      renderInventory();
+    });
+    input.addEventListener('blur', () => { setTimeout(() => menu.classList.remove('open'), 120); });
+  }
+  initTagCombo();
+
+  // ---------- image hover preview + lightbox ----------
+  const floatPreview = document.getElementById('imgFloatPreview');
+  const floatPreviewImg = document.getElementById('imgFloatPreviewImg');
+  function showFloatPreview(el, src){
+    floatPreviewImg.src = src;
+    floatPreview.style.display = 'block';
+    floatPreview.style.left = '-9999px';
+    const rect = el.getBoundingClientRect();
+    requestAnimationFrame(()=>{
+      const pw = floatPreview.offsetWidth, ph = floatPreview.offsetHeight;
+      let left = rect.left;
+      let top = rect.bottom + 6;
+      if(left + pw > window.innerWidth - 8) left = Math.max(8, window.innerWidth - pw - 8);
+      if(top + ph > window.innerHeight - 8) top = Math.max(8, rect.top - ph - 6);
+      floatPreview.style.left = left+'px';
+      floatPreview.style.top = top+'px';
+    });
+  }
+  function hideFloatPreview(){ floatPreview.style.display = 'none'; }
+
+  const imgLightbox = document.getElementById('imgLightbox');
+  const imgLightboxImg = document.getElementById('imgLightboxImg');
+  
+  let currentZoom = 1;
+  const zoomStep = 0.25;
+
+  document.getElementById('zoomInBtn').addEventListener('click', () => {
+    currentZoom += zoomStep;
+    imgLightboxImg.style.transform = `scale(${currentZoom})`;
+  });
+
+  document.getElementById('zoomOutBtn').addEventListener('click', () => {
+    if (currentZoom > zoomStep) {
+      currentZoom -= zoomStep;
+      imgLightboxImg.style.transform = `scale(${currentZoom})`;
+    }
+  });
+
+  document.getElementById('zoomResetBtn').addEventListener('click', () => {
+    currentZoom = 1;
+    imgLightboxImg.style.transform = `scale(${currentZoom})`;
+  });
+
+  document.getElementById('closeLightbox').addEventListener('click', ()=>imgLightbox.classList.remove('active'));
+
+  function openLightbox(src){
+    imgLightboxImg.src = src;
+    currentZoom = 1;
+    imgLightboxImg.style.transform = `scale(${currentZoom})`;
+    imgLightbox.classList.add('active');
+    hideFloatPreview();
+  }
+
+  function wireItemPhotoHover(container){
+    container.querySelectorAll('[data-img-id]').forEach(el=>{
+      const src = itemImages[el.getAttribute('data-img-id')];
+      if(!src) return;
+      el.classList.add('has-photo');
+      el.addEventListener('mouseenter', ()=>showFloatPreview(el, src));
+      el.addEventListener('mouseleave', hideFloatPreview);
+      el.addEventListener('click', ()=>openLightbox(src));
+    });
+  }
+
+  // ---------- charts ----------
+  function svgEl(w,h,inner){
+    return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" xmlns="http://www.w3.org/2000/svg" font-family="var(--mono)">${inner}</svg>`;
+  }
+  function renderTrendChart(){
+    const el = document.getElementById('trendChart');
+    const months = [];
+    const base = new Date();
+    for(let i=5;i>=0;i--){ const d = new Date(base.getFullYear(), base.getMonth()-i, 1); months.push(d.toISOString().slice(0,7)); }
+    const data = months.map(m=>{
+      const inQty = stockIn.filter(x=>monthOf(x.receivedDate)===m).reduce((s,x)=>s+Number(x.qty||0),0);
+      const outQty = stockOut.filter(x=>monthOf(x.date)===m).reduce((s,x)=>s+Number(x.qty||0),0);
+      return {m, inQty, outQty};
+    });
+    const max = Math.max(1, ...data.map(d=>Math.max(d.inQty,d.outQty)));
+    const W=380,H=200, padL=30, padB=28, padT=22, groupW=(W-padL-10)/6;
+    let bars='';
+    data.forEach((d,i)=>{
+      const gx = padL + i*groupW;
+      const barW = groupW*0.32;
+      const hIn = (H-padB-padT) * (d.inQty/max);
+      const hOut = (H-padB-padT) * (d.outQty/max);
+      const yIn = H-padB-hIn, yOut = H-padB-hOut;
+      
+      const inX = gx + groupW*0.12;
+      const outX = gx + groupW*0.52;
+
+      bars += `<rect x="${inX}" y="${yIn}" width="${barW}" height="${hIn}" fill="var(--amber)"></rect>`;
+      if(d.inQty > 0) {
+        bars += `<text x="${inX + barW/2}" y="${yIn - 3}" font-size="8" fill="var(--text-c)" text-anchor="middle">${fmtInt(d.inQty)}</text>`;
+      }
+
+      bars += `<rect x="${outX}" y="${yOut}" width="${barW}" height="${hOut}" fill="var(--steel-500)"></rect>`;
+      if(d.outQty > 0) {
+        bars += `<text x="${outX + barW/2}" y="${yOut - 3}" font-size="8" fill="var(--text-c)" text-anchor="middle">${fmtInt(d.outQty)}</text>`;
+      }
+
+      const label = new Date(d.m+'-01').toLocaleDateString(currentLang==='en'?'en-US':'id-ID',{month:'short'});
+      bars += `<text x="${gx+groupW/2}" y="${H-8}" font-size="10" fill="var(--text-dim)" text-anchor="middle">${label}</text>`;
+    });
+    bars += `<line x1="${padL}" y1="${H-padB}" x2="${W-8}" y2="${H-padB}" stroke="var(--border-c)" stroke-width="1"></line>`;
+    bars += `<rect x="${padL}" y="${H-14}" width="8" height="8" fill="var(--amber)"></rect><text x="${padL+12}" y="${H-7}" font-size="9" fill="var(--text-dim)">In</text>`;
+    bars += `<rect x="${padL+45}" y="${H-14}" width="8" height="8" fill="var(--steel-500)"></rect><text x="${padL+57}" y="${H-7}" font-size="9" fill="var(--text-dim)">Out</text>`;
+    el.innerHTML = svgEl(W,H,bars);
+  }
+  function renderCategoryChart(){
+    const el = document.getElementById('categoryChart');
+    const byCat = {};
+    items.forEach(it=>{
+      const s = itemStats(it);
+      const cat = it.category || 'Uncategorized';
+      byCat[cat] = (byCat[cat]||0) + s.invValue;
+    });
+    const rows = Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    if(!rows.length){ el.innerHTML = `<div class="chart-empty">${currentLang==='en'?'No inventory value yet.':'Belum ada nilai inventaris.'}</div>`; return; }
+    const max = Math.max(1, ...rows.map(r=>r[1]));
+    const W=380, rowH=32, H=rows.length*rowH+16;
+    let bars='';
+    rows.forEach((r,i)=>{
+      const y = 8 + i*rowH;
+      const w = Math.max(2, (W-140) * (r[1]/max));
+      bars += `<text x="0" y="${y+14}" font-size="11" fill="var(--text-c)">${escapeHtml(r[0])}</text>`;
+      bars += `<rect x="110" y="${y+2}" width="${w}" height="16" fill="var(--amber)"></rect>`;
+      bars += `<text x="${118+w}" y="${y+14}" font-size="10" fill="var(--text-dim)">${fmtRp(r[1])}</text>`;
+    });
+    el.innerHTML = svgEl(W,H,bars);
+  }
+
+  // ---------- dashboard ----------
+  function renderDashboard(){
+    const stats = items.map(it => ({item: it, s: itemStats(it)}));
+    const totalItems = items.length;
+    const totalOnHand = stats.reduce((s,x)=>s+x.s.onHand,0);
+    const totalValue = stats.reduce((s,x)=>s+x.s.invValue,0);
+    const lowCount = stats.filter(x=>x.s.status==='Low Stock').length;
+    const outCount = stats.filter(x=>x.s.status==='Out of Stock').length;
+    const overCount = stats.filter(x=>x.s.status==='Overstocked').length;
+
+    const grid = document.getElementById('statGrid');
+    grid.innerHTML = `
+      <div class="stat"><div class="label">${t('statUniqueItems')}</div><div class="value">${fmtInt(totalItems)}</div></div>
+      <div class="stat"><div class="label">${t('statUnitsOnHand')}</div><div class="value">${fmtInt(totalOnHand)}</div></div>
+      <div class="stat"><div class="label">${t('statInvValue')}</div><div class="value" style="font-size:19px;">${fmtRp(totalValue)}</div></div>
+      <div class="stat ${lowCount>0?'warn':''}"><div class="label">${t('statLowStock')}</div><div class="value">${fmtInt(lowCount)}</div></div>
+      <div class="stat ${outCount>0?'bad':''}"><div class="label">${t('statOutOfStock')}</div><div class="value">${fmtInt(outCount)}</div></div>
+      <div class="stat ${overCount>0?'info':''}"><div class="label">${t('statOverstocked')}</div><div class="value">${fmtInt(overCount)}</div></div>
+    `;
+
+    const lowBody = document.getElementById('lowStockBody');
+    const attn = stats.filter(x=>x.s.status!=='In Stock').sort((a,b)=>a.s.onHand-b.s.onHand);
+    lowBody.innerHTML = attn.length ? attn.map(x=>`
+      <tr>
+        <td>${escapeHtml(x.item.code||'—')}</td>
+        <td>${escapeHtml(x.item.name)}</td>
+        <td>${escapeHtml(x.item.category||'—')}</td>
+        <td class="num">${fmtInt(x.s.onHand)}</td>
+        <td class="num">${fmtInt(x.item.minStock)}</td>
+        <td class="num">${x.item.maxStock===''||x.item.maxStock==null?'—':fmtInt(x.item.maxStock)}</td>
+        <td>${statusBadge(x.s.status)}</td>
+      </tr>`).join('') : `<tr class="empty-row"><td colspan="7">${currentLang==='en'?'Nothing needs attention right now.':'Tidak ada yang memerlukan perhatian saat ini.'}</td></tr>`;
+
+    renderTrendChart();
+    renderCategoryChart();
+    renderTopItems();
+    renderRecentActivity();
+  }
+
+  function statusBadge(status){
+    if(status==='Low Stock') return `<span class="badge low">${t('statusLow')}</span>`;
+    if(status==='Out of Stock') return `<span class="badge out">${t('statusOut')}</span>`;
+    if(status==='Overstocked') return `<span class="badge over">${t('statusOver')}</span>`;
+    return `<span class="badge in">${t('statusIn')}</span>`;
+  }
+
+  let activityMonthInit = false, topItemsMonthInit = false;
+
+  function renderRecentActivity(){
+    const fromInput = document.getElementById('activityMonthFrom');
+    const toInput = document.getElementById('activityMonthTo');
+    const allDates = [...stockIn.map(x=>x.receivedDate), ...stockOut.map(x=>x.date)].filter(Boolean).sort();
+    if(!activityMonthInit){
+      fromInput.value = allDates.length ? monthOf(allDates[0]) : todayISO().slice(0,7);
+      toInput.value = allDates.length ? monthOf(allDates[allDates.length-1]) : todayISO().slice(0,7);
+      activityMonthInit = true;
+    }
+    const fromM = fromInput.value || '0000-00';
+    const toM = toInput.value || '9999-99';
+
+    const activity = [
+      ...stockIn.map(x=>({date:x.receivedDate, type:'Stock In', itemId:x.itemId, qty:x.qty, createdAt: x.createdAt||0})),
+      ...stockOut.map(x=>({date:x.date, type:'Stock Out', itemId:x.itemId, qty:x.qty, createdAt: x.createdAt||0}))
+    ].filter(a=>{
+      const m = monthOf(a.date);
+      return m && m >= fromM && m <= toM;
+    }).sort((a,b)=> {
+      if((b.createdAt||0) !== (a.createdAt||0)) return (b.createdAt||0) - (a.createdAt||0);
+      return (b.date||'').localeCompare(a.date||'');
+    });
+
+    const body = document.getElementById('recentBody');
+    body.innerHTML = activity.length ? activity.map(a=>{
+      const it = items.find(i=>i.id===a.itemId);
+      return `<tr>
+        <td>${a.date||'—'}</td>
+        <td>${a.type==='Stock In' ? '<span class="badge in">IN</span>' : '<span class="badge out">OUT</span>'}</td>
+        <td>${escapeHtml(it? it.code||'—' : '—')}</td>
+        <td>${escapeHtml(it? it.name : (currentLang==='en'?'Unknown item':'Barang tidak dikenal'))}</td>
+        <td class="num">${fmtInt(a.qty)}</td>
+      </tr>`;
+    }).join('') : `<tr class="empty-row"><td colspan="5">${currentLang==='en'?'No activity in this date range.':'Tidak ada aktivitas dalam rentang tanggal ini.'}</td></tr>`;
+  }
+  document.getElementById('activityMonthFrom').addEventListener('change', renderRecentActivity);
+  document.getElementById('activityMonthTo').addEventListener('change', renderRecentActivity);
+
+  function renderTopItems(){
+    const fromInput = document.getElementById('topItemsMonthFrom');
+    const toInput = document.getElementById('topItemsMonthTo');
+    const allDates = stockOut.map(x=>x.date).filter(Boolean).sort();
+    if(!topItemsMonthInit){
+      fromInput.value = allDates.length ? monthOf(allDates[0]) : todayISO().slice(0,7);
+      toInput.value = allDates.length ? monthOf(allDates[allDates.length-1]) : todayISO().slice(0,7);
+      topItemsMonthInit = true;
+    }
+    const fromM = fromInput.value || '0000-00';
+    const toM = toInput.value || '9999-99';
+
+    const totals = {};
+    stockOut.filter(x=>{
+      const m = monthOf(x.date);
+      return m && m >= fromM && m <= toM;
+    }).forEach(x=>{ totals[x.itemId] = (totals[x.itemId]||0) + Number(x.qty||0); });
+
+    const rows = Object.entries(totals).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    const body = document.getElementById('topItemsBody');
+    if(!rows.length){ body.innerHTML = `<tr class="empty-row"><td colspan="5">${currentLang==='en'?'No usage logged in this date range.':'Tidak ada penggunaan yang dicatat.'}</td></tr>`; return; }
+    body.innerHTML = rows.map((r,i)=>{
+      const it = items.find(x=>x.id===r[0]);
+      return `<tr><td>${i+1}</td><td>${escapeHtml(it? it.code||'—' : '—')}</td><td>${escapeHtml(it? it.name : (currentLang==='en'?'Deleted item':'Barang dihapus'))}</td><td>${escapeHtml(it? it.category||'—' : '—')}</td><td class="num">${fmtInt(r[1])}</td></tr>`;
+    }).join('');
+  }
+  document.getElementById('topItemsMonthFrom').addEventListener('change', renderTopItems);
+  document.getElementById('topItemsMonthTo').addEventListener('change', renderTopItems);
+
+  // ---------- image handling (uncompressed) ----------
+  function readFileAsDataURL(file){
+    return new Promise((resolve,reject)=>{
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  function setPhotoPreview(dataUrl){
+    const box = document.getElementById('itemPhotoPreviewBox');
+    const removeBtn = document.getElementById('itemPhotoRemove');
+    if(dataUrl){
+      box.innerHTML = `<img src="${dataUrl}" alt="preview">`;
+      removeBtn.style.display='';
+    }else{
+      box.innerHTML = `<span class="ph-empty">${t('phNoPhoto')}</span>`;
+      removeBtn.style.display='none';
+    }
+  }
+  document.getElementById('itemPhotoInput').addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    try{
+      const dataUrl = await readFileAsDataURL(file);
+      itemPhotoTemp = dataUrl;
+      itemPhotoChanged = true;
+      setPhotoPreview(dataUrl);
+    }catch(err){
+      showToast(currentLang==='en'?'Could not read that image.':'Gagal membaca gambar.', true);
+    }
+  });
+  document.getElementById('itemPhotoRemove').addEventListener('click', ()=>{
+    itemPhotoTemp = '';
+    itemPhotoChanged = true;
+    setPhotoPreview('');
+    document.getElementById('itemPhotoInput').value='';
+  });
+
+  // ---------- render: inventory ----------
+  function renderInventory(){
+    // 1. Populate Category Filter
+    const catSel = document.getElementById('invCategoryFilter');
+    const curCat = catSel.value;
+    catSel.innerHTML = `<option value="">${t('optAllCategories')}</option>` + CATEGORIES.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    if(CATEGORIES.includes(curCat)) catSel.value = curCat;
+
+    // 2. Populate Location Filter
+    const locSel = document.getElementById('invLocationFilter');
+    const curLoc = locSel.value;
+    locSel.innerHTML = `<option value="">${t('optAllLocations')}</option>` +
+      `<option value="__unassigned__">${t('optUnassignedLoc')}</option>` +
+      locations.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(l=>`<option value="${l.id}">${escapeHtml(l.name)}</option>`).join('');
+    if(curLoc) locSel.value = curLoc;
+
+    // 3. Update Sort Icon
+    const sortIcon = document.getElementById('invValueSortIcon');
+    if(invSortDirection==='desc') sortIcon.textContent = '▼';
+    else if(invSortDirection==='asc') sortIcon.textContent = '▲';
+    else sortIcon.textContent = '⇅';
+
+    const search = document.getElementById('invSearch').value.trim().toLowerCase();
+    const catFilter = catSel.value;
+    const locFilter = locSel.value;
+    const statusFilter = document.getElementById('invStatusFilter').value;
+    const tagFilter = selectedTagFilter.trim().toLowerCase();
+
+    let rows = items.filter(it=>{
+      const s = itemStats(it);
+      if(catFilter && it.category !== catFilter) return false;
+      if(tagFilter && !(it.purposes||[]).some(p=>p.toLowerCase()===tagFilter)) return false;
+      if(statusFilter && s.status !== statusFilter) return false;
+      if(locFilter){
+        if(locFilter==='__unassigned__'){
+          if(it.locationId) return false;
+        } else if(it.locationId !== locFilter) return false;
+      }
+      if(search && !(it.name.toLowerCase().includes(search) || (it.code||'').toLowerCase().includes(search) || (it.purposes||[]).some(p=>p.toLowerCase().includes(search)))) return false;
+      return true;
+    });
+
+    // Sort rows
+    if(invSortDirection==='desc'){
+      rows.sort((a,b) => itemStats(b).invValue - itemStats(a).invValue);
+    } else if(invSortDirection==='asc'){
+      rows.sort((a,b) => itemStats(a).invValue - itemStats(b).invValue);
+    } else {
+      rows.sort((a,b) => a.name.localeCompare(b.name));
+    }
+
+    const body = document.getElementById('inventoryBody');
+    if(!rows.length){
+      body.innerHTML = `<tr class="empty-row"><td colspan="14">${items.length? (currentLang==='en'?'No items match your filters.':'Tidak ada barang yang cocok dengan filter.') : (currentLang==='en'?'No items yet — add your first item to get started.':'Belum ada barang — tambah barang pertama Anda.')}</td></tr>`;
+      return;
+    }
+
+    body.innerHTML = rows.map(it=>{
+      const s = itemStats(it);
+      
+      // Purpose Tags render truncated into dots with a hover tooltip
+      let tags = '—';
+      if (it.purposes && it.purposes.length > 0) {
+        const fullBadges = it.purposes.map(p => `<span class="tag-badge">${escapeHtml(p)}</span>`).join('');
+        tags = `
+          <div class="tags-hover-container">
+            <span class="tags-dots-badge">...</span>
+            <div class="tags-tooltip">${fullBadges}</div>
+          </div>
+        `;
+      }
+
+      const img = itemImages[it.id];
+      const nameCell = `<span class="item-hover" data-img-id="${it.id}">${escapeHtml(it.name)}${img?' <span class="cam">📷</span>':''}</span>`;
+      
+      const locOptions = `<option value="">${t('optUnassignedLoc')}</option>` +
+        locations.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(l => `<option value="${l.id}" ${it.locationId===l.id?'selected':''}>${escapeHtml(l.name)}</option>`).join('');
+
+      return `<tr>
+        <td><strong>${escapeHtml(it.code||'—')}</strong></td>
+        <td>
+          <div style="display:flex; align-items:center; gap:4px;">
+            <button class="btn-view-hist" data-view-hist="${it.id}" title="${currentLang==='en'?'View Stock History':'Lihat Riwayat Stok'}">🔍</button>
+            ${nameCell}
+          </div>
+        </td>
+        <td>
+          <select class="inline-loc-select" data-item-loc="${it.id}">
+            ${locOptions}
+          </select>
+        </td>
+        <td style="text-align:center;">${tags}</td>
+        <td>${escapeHtml(it.category||'—')}</td>
+        <td class="num">${fmtInt(s.purchased)}</td>
+        <td class="num">${fmtInt(s.sold)}</td>
+        <td class="num">${fmtInt(s.onHand)}</td>
+        <td class="num">${fmtInt(it.minStock)}</td>
+        <td class="num">${it.maxStock===''||it.maxStock==null?'—':fmtInt(it.maxStock)}</td>
+        <td class="num">${fmtRp(s.avgCost)}</td>
+        <td class="num">${fmtRp(s.invValue)}</td>
+        <td>${statusBadge(s.status)}</td>
+        <td>
+          <div class="row-actions">
+            <button class="btn-edit" data-edit-item="${it.id}" title="${currentLang==='en'?'Edit Item':'Edit Barang'}">✎</button>
+            <button class="btn-danger" data-del-item="${it.id}" title="${currentLang==='en'?'Delete Item':'Hapus Barang'}">✖</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    wireItemPhotoHover(body);
+
+    body.querySelectorAll('[data-view-hist]').forEach(b=>{
+      b.addEventListener('click', ()=> openItemHistoryModal(b.getAttribute('data-view-hist')));
+    });
+
+    body.querySelectorAll('[data-item-loc]').forEach(sel=>{
+      sel.addEventListener('change', (e)=>{
+        const id = sel.getAttribute('data-item-loc');
+        const it = items.find(i=>i.id===id);
+        if(it){
+          it.locationId = e.target.value;
+          saveData();
+          showToast(currentLang==='en'?'Location updated.':'Lokasi diperbarui.');
+        }
+      });
+    });
+
+    body.querySelectorAll('[data-del-item]').forEach(b=>{
+      b.addEventListener('click', async ()=>{
+        const id = b.getAttribute('data-del-item');
+        const hasTx = stockIn.some(x=>x.itemId===id) || stockOut.some(x=>x.itemId===id);
+        if(hasTx && !confirm(currentLang==='en'?'This item has stock-in/out history. Delete it and all related log entries?':'Barang ini memiliki riwayat masuk/keluar. Hapus barang dan seluruh catatan terkait?')) return;
+        items = items.filter(i=>i.id!==id);
+        stockIn = stockIn.filter(x=>x.itemId!==id);
+        stockOut = stockOut.filter(x=>x.itemId!==id);
+        if(itemImages[id]){
+          delete itemImages[id];
+          try{ await storageApi.delete('item-image:'+id); }catch(e){}
+        }
+        saveData();
+        renderAll();
+        showToast(currentLang==='en'?'Item deleted.':'Barang dihapus.');
+      });
+    });
+    body.querySelectorAll('[data-edit-item]').forEach(b=>{
+      b.addEventListener('click', ()=> openItemModal('edit', b.getAttribute('data-edit-item')));
+    });
+  }
+
+  // ---------- Item Stock History Modal ----------
+  const itemHistoryModal = document.getElementById('itemHistoryModal');
+  function openItemHistoryModal(itemId){
+    const it = items.find(i => i.id === itemId);
+    if(!it) return;
+
+    document.getElementById('itemHistoryTitle').textContent = (currentLang==='en' ? 'Stock History: ' : 'Riwayat Stok: ') + (it.code ? `[${it.code}] ` : '') + it.name;
+    const s = itemStats(it);
+    document.getElementById('itemHistorySummary').innerHTML = 
+      `<strong>${currentLang==='en'?'Category':'Kategori'}:</strong> ${escapeHtml(it.category||'—')} | ` +
+      `<strong>${currentLang==='en'?'Purchased':'Total Masuk'}:</strong> ${fmtInt(s.purchased)} | ` +
+      `<strong>${currentLang==='en'?'Usage':'Terpakai'}:</strong> ${fmtInt(s.sold)} | ` +
+      `<strong>${currentLang==='en'?'On Hand':'Stok Ada'}:</strong> ${fmtInt(s.onHand)}`;
+
+    const ins = stockIn.filter(x => x.itemId === itemId).map(x => ({
+      date: x.receivedDate || '',
+      type: 'Stock In',
+      vendorOrKegunaan: x.vendor || '—',
+      qty: x.qty,
+      notes: x.notes || '',
+      createdAt: x.createdAt || 0
+    }));
+
+    const outs = stockOut.filter(x => x.itemId === itemId).map(x => ({
+      date: x.date || '',
+      type: 'Stock Out',
+      vendorOrKegunaan: x.kegunaan || '—',
+      qty: x.qty,
+      notes: x.notes || '',
+      createdAt: x.createdAt || 0
+    }));
+
+    // Combine & Sort newest first
+    const historyLogs = [...ins, ...outs].sort((a,b) => {
+      if((b.createdAt||0) !== (a.createdAt||0)) return (b.createdAt||0) - (a.createdAt||0);
+      return (b.date || '').localeCompare(a.date || '');
+    });
+
+    const body = document.getElementById('itemHistoryBody');
+    if(!historyLogs.length){
+      body.innerHTML = `<tr class="empty-row"><td colspan="5">${currentLang==='en'?'No stock in/out history for this item.':'Belum ada riwayat masuk/keluar untuk barang ini.'}</td></tr>`;
+    } else {
+      body.innerHTML = historyLogs.map(l => `
+        <tr>
+          <td>${l.date || '—'}</td>
+          <td>${l.type === 'Stock In' ? '<span class="badge in">IN</span>' : '<span class="badge out">OUT</span>'}</td>
+          <td>${escapeHtml(l.vendorOrKegunaan)}</td>
+          <td class="num">${fmtInt(l.qty)}</td>
+          <td>${l.notes ? `<span class="note-preview" title="${escapeHtml(l.notes)}">${escapeHtml(l.notes)}</span>` : '—'}</td>
+        </tr>
+      `).join('');
+    }
+
+    itemHistoryModal.classList.add('active');
+  }
+
+  document.getElementById('closeItemHistoryModal').addEventListener('click', ()=>itemHistoryModal.classList.remove('active'));
+  document.getElementById('cancelItemHistoryModal').addEventListener('click', ()=>itemHistoryModal.classList.remove('active'));
+
+  // ---------- RENDER ITEM ANALYTICS TAB ----------
+  function getMonthList(startM, endM) {
+    const list = [];
+    if (!startM || !endM || startM > endM) return list;
+    let [y, m] = startM.split('-').map(Number);
+    const [endY, endMNum] = endM.split('-').map(Number);
+    
+    while (y < endY || (y === endY && m <= endMNum)) {
+      list.push(`${y}-${String(m).padStart(2, '0')}`);
+      m++;
+      if (m > 12) { m = 1; y++; }
+    }
+    return list;
+  }
+
+  function renderItemAnalytics(){
+    const analyticsContent = document.getElementById('analyticsContent');
+    const analyticsEmpty = document.getElementById('analyticsEmpty');
+
+    const fromInput = document.getElementById('analyticsMonthFrom');
+    const toInput = document.getElementById('analyticsMonthTo');
+
+    if(!analyticsMonthInit){
+      const curr = todayISO().slice(0,7);
+      const base = new Date();
+      const past = new Date(base.getFullYear(), base.getMonth()-11, 1);
+      fromInput.value = past.toISOString().slice(0,7);
+      toInput.value = curr;
+      analyticsMonthInit = true;
+    }
+
+    if(!analyticsSelectedItemId){
+      analyticsContent.style.display = 'none';
+      analyticsEmpty.style.display = 'block';
+      return;
+    }
+
+    const item = items.find(i => i.id === analyticsSelectedItemId);
+    if(!item){
+      analyticsSelectedItemId = '';
+      analyticsContent.style.display = 'none';
+      analyticsEmpty.style.display = 'block';
+      return;
+    }
+
+    analyticsContent.style.display = 'block';
+    analyticsEmpty.style.display = 'none';
+
+    let fromM = fromInput.value;
+    let toM = toInput.value;
+    if(fromM && toM && fromM > toM){
+      const temp = fromM; fromM = toM; toM = temp;
+      fromInput.value = fromM; toInput.value = toM;
+    }
+
+    const months = getMonthList(fromM, toM);
+    const numMonths = Math.max(1, months.length);
+
+    // Calculate In / Out / OnHand within & up to selected range
+    const insInRange = stockIn.filter(x => x.itemId === item.id && monthOf(x.receivedDate) >= fromM && monthOf(x.receivedDate) <= toM);
+    const outsInRange = stockOut.filter(x => x.itemId === item.id && monthOf(x.date) >= fromM && monthOf(x.date) <= toM);
+
+    const totalIn = insInRange.reduce((s, x) => s + Number(x.qty||0), 0);
+    const totalOut = outsInRange.reduce((s, x) => s + Number(x.qty||0), 0);
+    const monthlyRate = Math.round((totalOut / numMonths) * 10) / 10;
+
+    // Calculate On Hand at the end of the selected 'To' month
+    const totalInUpTo = stockIn.filter(x => x.itemId === item.id && monthOf(x.receivedDate) <= toM).reduce((s, x) => s + Number(x.qty||0), 0);
+    const totalOutUpTo = stockOut.filter(x => x.itemId === item.id && monthOf(x.date) <= toM).reduce((s, x) => s + Number(x.qty||0), 0);
+    const onHandAtRangeEnd = totalInUpTo - totalOutUpTo;
+
+    // Render Stat Cards
+    const grid = document.getElementById('analyticsStatGrid');
+    grid.innerHTML = `
+      <div class="stat"><div class="label">${currentLang==='en'?'Units On Hand (Period End)':'Stok (Akhir Periode)'}</div><div class="value">${fmtInt(onHandAtRangeEnd)}</div></div>
+      <div class="stat"><div class="label">${currentLang==='en'?'Total Order Flow (In)':'Total Masuk (In)'}</div><div class="value" style="color:var(--amber);">${fmtInt(totalIn)}</div></div>
+      <div class="stat"><div class="label">${currentLang==='en'?'Total Usage (Out)':'Total Keluar (Out)'}</div><div class="value">${fmtInt(totalOut)}</div></div>
+      <div class="stat"><div class="label">${currentLang==='en'?'Avg Monthly Usage Rate':'Rata-rata Keluar / Bulan'}</div><div class="value">${monthlyRate}</div></div>
+      <div class="stat"><div class="label">${currentLang==='en'?'Min / Max Thresholds':'Batas Min / Maks'}</div><div class="value" style="font-size:20px;">${fmtInt(item.minStock)} / ${item.maxStock ? fmtInt(item.maxStock) : '∞'}</div></div>
+    `;
+
+    // Render Chart for month range
+    document.getElementById('analyticsChartTitle').textContent = `${currentLang==='en'?'Monthly Usage & Order Flow':'Penggunaan & Pesanan Bulanan'} (${fromM} ~ ${toM})`;
+    renderAnalyticsChart(item.id, months);
+
+    // Render Recent Transactions filtered by range
+    const ins = insInRange.map(x => ({ date: x.receivedDate||'', type: 'Stock In', vendorOrKegunaan: x.vendor||'—', qty: x.qty, notes: x.notes||'', createdAt: x.createdAt||0 }));
+    const outs = outsInRange.map(x => ({ date: x.date||'', type: 'Stock Out', vendorOrKegunaan: x.kegunaan||'—', qty: x.qty, notes: x.notes||'', createdAt: x.createdAt||0 }));
+    const txs = [...ins, ...outs].sort((a,b) => {
+      if((b.createdAt||0) !== (a.createdAt||0)) return (b.createdAt||0) - (a.createdAt||0);
+      return (b.date||'').localeCompare(a.date||'');
+    });
+
+    const txBody = document.getElementById('analyticsTxBody');
+    if(!txs.length){
+      txBody.innerHTML = `<tr class="empty-row"><td colspan="5">${currentLang==='en'?'No transactions logged for this item in this date range.':'Belum ada transaksi untuk barang ini dalam rentang tanggal ini.'}</td></tr>`;
+    } else {
+      txBody.innerHTML = txs.map(t => `
+        <tr>
+          <td>${t.date||'—'}</td>
+          <td>${t.type === 'Stock In' ? '<span class="badge in">IN</span>' : '<span class="badge out">OUT</span>'}</td>
+          <td>${escapeHtml(t.vendorOrKegunaan)}</td>
+          <td class="num">${fmtInt(t.qty)}</td>
+          <td>${t.notes ? `<span class="note-preview" title="${escapeHtml(t.notes)}">${escapeHtml(t.notes)}</span>` : '—'}</td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  document.getElementById('analyticsMonthFrom').addEventListener('change', renderItemAnalytics);
+  document.getElementById('analyticsMonthTo').addEventListener('change', renderItemAnalytics);
+
+  function renderAnalyticsChart(itemId, months){
+    const el = document.getElementById('analyticsChart');
+    if(!months.length){
+      el.innerHTML = `<div class="chart-empty">${currentLang==='en'?'Invalid month range.':'Rentang bulan tidak valid.'}</div>`;
+      return;
+    }
+
+    const data = months.map(m => {
+      const inQty = stockIn.filter(x => x.itemId === itemId && monthOf(x.receivedDate) === m).reduce((s,x) => s + Number(x.qty||0), 0);
+      const outQty = stockOut.filter(x => x.itemId === itemId && monthOf(x.date) === m).reduce((s,x) => s + Number(x.qty||0), 0);
+      return { m, inQty, outQty };
+    });
+
+    const max = Math.max(1, ...data.map(d => Math.max(d.inQty, d.outQty)));
+    const W = 700, H = 220, padL = 35, padB = 30, padT = 25, groupW = (W - padL - 10) / data.length;
+    let bars = '';
+
+    data.forEach((d, i) => {
+      const gx = padL + i * groupW;
+      const barW = Math.max(1, groupW * 0.35);
+      const hIn = (H - padB - padT) * (d.inQty / max);
+      const hOut = (H - padB - padT) * (d.outQty / max);
+      const yIn = H - padB - hIn;
+      const yOut = H - padB - hOut;
+
+      const inX = gx + groupW * 0.1;
+      const outX = gx + groupW * 0.5;
+
+      bars += `<rect x="${inX}" y="${yIn}" width="${barW}" height="${hIn}" fill="var(--amber)"></rect>`;
+      if(d.inQty > 0) {
+        bars += `<text x="${inX + barW/2}" y="${yIn - 4}" font-size="${data.length > 15 ? 7 : 9}" fill="var(--text-c)" text-anchor="middle">${fmtInt(d.inQty)}</text>`;
+      }
+
+      bars += `<rect x="${outX}" y="${yOut}" width="${barW}" height="${hOut}" fill="var(--steel-500)"></rect>`;
+      if(d.outQty > 0) {
+        bars += `<text x="${outX + barW/2}" y="${yOut - 4}" font-size="${data.length > 15 ? 7 : 9}" fill="var(--text-c)" text-anchor="middle">${fmtInt(d.outQty)}</text>`;
+      }
+      
+      const label = new Date(d.m + '-01').toLocaleDateString(currentLang==='en'?'en-US':'id-ID', {month:'short', year: data.length > 12 ? '2-digit' : undefined});
+      bars += `<text x="${gx + groupW/2}" y="${H - 8}" font-size="${data.length > 15 ? 7 : 9}" fill="var(--text-dim)" text-anchor="middle">${label}</text>`;
+    });
+
+    bars += `<line x1="${padL}" y1="${H - padB}" x2="${W - 8}" y2="${H - padB}" stroke="var(--border-c)" stroke-width="1"></line>`;
+    bars += `<rect x="${padL}" y="${H - 12}" width="8" height="8" fill="var(--amber)"></rect><text x="${padL + 12}" y="${H - 5}" font-size="9" fill="var(--text-dim)">Order Flow (In)</text>`;
+    bars += `<rect x="${padL + 110}" y="${H - 12}" width="8" height="8" fill="var(--steel-500)"></rect><text x="${padL + 122}" y="${H - 5}" font-size="9" fill="var(--text-dim)">Usage (Out)</text>`;
+
+    el.innerHTML = svgEl(W, H, bars);
+  }
+
+  document.getElementById('thInvValueSort').addEventListener('click', ()=>{
+    if(invSortDirection==='none' || invSortDirection==='asc') invSortDirection = 'desc';
+    else if(invSortDirection==='desc') invSortDirection = 'asc';
+    renderInventory();
+  });
+
+  document.getElementById('invSearch').addEventListener('input', renderInventory);
+  document.getElementById('invCategoryFilter').addEventListener('change', renderInventory);
+  document.getElementById('invLocationFilter').addEventListener('change', renderInventory);
+  document.getElementById('invStatusFilter').addEventListener('change', renderInventory);
+
+  // ---------- tag chip widget ----------
+  function renderItemTags(){
+    const list = document.getElementById('itemTagList');
+    list.innerHTML = itemTags.map((t,i)=>`<span class="tag-chip">${escapeHtml(t)}<button type="button" data-tag-remove="${i}">&times;</button></span>`).join('');
+    list.querySelectorAll('[data-tag-remove]').forEach(b=>{
+      b.addEventListener('click', ()=>{ itemTags.splice(Number(b.getAttribute('data-tag-remove')),1); renderItemTags(); });
+    });
+  }
+  function addTagFromInput(){
+    const input = document.getElementById('itemTagInput');
+    const val = input.value.trim().replace(/,$/,'');
+    if(val && !itemTags.some(t=>t.toLowerCase()===val.toLowerCase())){ itemTags.push(val); renderItemTags(); }
+    input.value = '';
+  }
+  document.getElementById('itemTagInput').addEventListener('keydown', (e)=>{
+    if(e.key==='Enter' || e.key===','){ e.preventDefault(); addTagFromInput(); }
+  });
+  document.getElementById('itemTagInput').addEventListener('blur', addTagFromInput);
+
+  // ---------- populate location select in modal ----------
+  function populateItemLocationSelect(selId, selectedId){
+    const sel = document.getElementById(selId);
+    if(!sel) return;
+    sel.innerHTML = `<option value="">${t('selectLocDefault')}</option>` +
+      locations.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(l=>`<option value="${l.id}">${escapeHtml(l.name)}</option>`).join('');
+    if(selectedId) sel.value = selectedId;
+  }
+
+  // ---------- item add/edit modal ----------
+  const itemModal = document.getElementById('itemModal');
+  function openItemModal(mode, itemId){
+    document.getElementById('itemError').style.display='none';
+    const editNote = document.getElementById('itemEditNote');
+    itemPhotoChanged = false;
+    if(mode==='add'){
+      editingItemId = null;
+      document.getElementById('itemModalTitle').textContent = t('modalAddItemTitle');
+      document.getElementById('itemCode').value = '';
+      document.getElementById('itemName').value = '';
+      populateItemLocationSelect('itemLocationSelect', '');
+      document.getElementById('itemCategory').value = 'Plat';
+      document.getElementById('itemMinStock').value = 1;
+      document.getElementById('itemMaxStock').value = '';
+      document.getElementById('itemInitQty').value = 0;
+      document.getElementById('itemInitWeight').value = 0;
+      document.getElementById('itemInitQtyLabel').textContent = t('lblInitQty');
+      itemTags = [];
+      itemPhotoTemp = '';
+      editNote.style.display = 'none';
+    }else{
+      const it = items.find(i=>i.id===itemId);
+      if(!it) return;
+      editingItemId = itemId;
+      document.getElementById('itemModalTitle').textContent = t('modalEditItemTitle');
+      document.getElementById('itemCode').value = it.code || '';
+      document.getElementById('itemName').value = it.name;
+      populateItemLocationSelect('itemLocationSelect', it.locationId||'');
+      document.getElementById('itemCategory').value = CATEGORIES.includes(it.category) ? it.category : 'Plat';
+      document.getElementById('itemMinStock').value = it.minStock||0;
+      document.getElementById('itemMaxStock').value = (it.maxStock===''||it.maxStock==null) ? '' : it.maxStock;
+      document.getElementById('itemInitWeight').value = it.weightKg || 0;
+      const ob = openingBalanceEntry(itemId);
+      document.getElementById('itemInitQty').value = ob ? ob.qty : 0;
+      document.getElementById('itemInitQtyLabel').textContent = t('lblInitQtyOb');
+      itemTags = (it.purposes||[]).slice();
+      itemPhotoTemp = itemImages[itemId] || '';
+      editNote.style.display = 'block';
+    }
+    setPhotoPreview(itemPhotoTemp);
+    renderItemTags();
+    document.getElementById('itemTagInput').value='';
+    document.getElementById('itemPhotoInput').value='';
+    itemModal.classList.add('active');
+  }
+  document.getElementById('addItemBtn').addEventListener('click', ()=>openItemModal('add'));
+  document.getElementById('closeItemModal').addEventListener('click', ()=>itemModal.classList.remove('active'));
+  document.getElementById('cancelItemModal').addEventListener('click', ()=>itemModal.classList.remove('active'));
+  document.getElementById('saveItemModal').addEventListener('click', async ()=>{
+    addTagFromInput();
+    const code = document.getElementById('itemCode').value.trim();
+    const name = document.getElementById('itemName').value.trim();
+    const err = document.getElementById('itemError');
+    if(!name){ err.textContent = currentLang==='en'?'Item name is required.':'Nama barang wajib diisi.'; err.style.display='block'; return; }
+    const dup = items.some(i=>i.name.toLowerCase()===name.toLowerCase() && i.id!==editingItemId);
+    if(dup){ err.textContent = currentLang==='en'?'An item with this name already exists.':'Barang dengan nama ini sudah ada.'; err.style.display='block'; return; }
+    const locationId = document.getElementById('itemLocationSelect').value;
+    const category = document.getElementById('itemCategory').value;
+    const minStock = Number(document.getElementById('itemMinStock').value)||0;
+    const maxStockRaw = document.getElementById('itemMaxStock').value;
+    const maxStock = maxStockRaw==='' ? '' : Number(maxStockRaw);
+    const itemWeight = Number(document.getElementById('itemInitWeight').value)||0;
+    const newInitQty = Number(document.getElementById('itemInitQty').value)||0;
+    err.style.display='none';
+
+    let targetId = editingItemId;
+
+    if(editingItemId){
+      const it = items.find(i=>i.id===editingItemId);
+      it.code = code; it.name = name; it.locationId = locationId; it.category = category; it.minStock = minStock; it.maxStock = maxStock; it.weightKg = itemWeight; it.purposes = itemTags.slice();
+
+      let ob = openingBalanceEntry(editingItemId);
+      if(ob){
+        if(Number(ob.qty) !== newInitQty){
+          ob.qty = newInitQty;
+          ob.history = ob.history || [];
+          ob.history.push({ts: nowStamp(), summary: 'Initial quantity edited: ' + newInitQty});
+        }
+      }else if(newInitQty > 0){
+        stockIn.push({id: uid(), itemId: editingItemId, vendor:'Opening balance', orderNo:'', receivedDate: todayISO(), qty:newInitQty, notes:'', history:[{ts:nowStamp(), summary:'Created from Inventory tab (opening balance)'}], createdAt: Date.now()});
+      }
+      saveData();
+    }else{
+      targetId = uid();
+      items.push({id:targetId, code, name, locationId, category, minStock, maxStock, weightKg: itemWeight, purposes: itemTags.slice()});
+      if(newInitQty > 0){
+        stockIn.push({id: uid(), itemId:targetId, vendor:'Opening balance', orderNo:'', receivedDate: todayISO(), qty:newInitQty, notes:'', history:[{ts:nowStamp(), summary:'Created (opening balance)'}], createdAt: Date.now()});
+      }
+      saveData();
+    }
+
+    if(itemPhotoChanged){
+      if(itemPhotoTemp){
+        itemImages[targetId] = itemPhotoTemp;
+        try{ await storageApi.set('item-image:'+targetId, itemPhotoTemp); }catch(e){}
+      }else{
+        delete itemImages[targetId];
+        try{ await storageApi.delete('item-image:'+targetId); }catch(e){}
+      }
+    }
+
+    itemModal.classList.remove('active');
+    renderAll();
+    showToast(editingItemId ? (currentLang==='en'?'Item updated.':'Barang diperbarui.') : (currentLang==='en'?'Item added.':'Barang ditambahkan.'));
+  });
+
+  // ---------- pricing tab (global) ----------
+  function renderPricing(){
+    document.getElementById('globalPriceInput').value = globalPricePerKg || 0;
+    const body = document.getElementById('priceHistoryBody');
+    const rows = globalPriceHistory.slice().reverse();
+    if(!rows.length){ body.innerHTML = `<tr class="empty-row"><td colspan="3">${currentLang==='en'?'No price changes recorded yet.':'Belum ada riwayat perubahan harga.'}</td></tr>`; return; }
+    body.innerHTML = rows.map(h=>`<tr><td>${escapeHtml(h.ts)}</td><td class="num">${fmtRp(h.oldPrice)}</td><td class="num">${fmtRp(h.newPrice)}</td></tr>`).join('');
+  }
+  document.getElementById('saveGlobalPrice').addEventListener('click', ()=>{
+    const err = document.getElementById('globalPriceError');
+    err.style.display='none';
+    const newVal = Number(document.getElementById('globalPriceInput').value);
+    if(isNaN(newVal) || newVal<0){ err.textContent = currentLang==='en'?'Enter a valid price.':'Masukkan harga yang valid.'; err.style.display='block'; return; }
+    if(newVal === globalPricePerKg){ showToast(currentLang==='en'?'Price unchanged.':'Harga tidak berubah.'); return; }
+    globalPriceHistory.push({ts: nowStamp(), oldPrice: globalPricePerKg, newPrice: newVal});
+    globalPricePerKg = newVal;
+    saveData();
+    renderAll();
+    showToast(currentLang==='en'?'Price updated.':'Harga diperbarui.');
+  });
+
+  // ---------- locations tab & edit modal ----------
+  const editLocModal = document.getElementById('editLocModal');
+
+  function openEditLocModal(id){
+    const l = locations.find(x=>x.id===id);
+    if(!l) return;
+    editingLocId = id;
+    document.getElementById('editLocName').value = l.name || '';
+    document.getElementById('editLocContact').value = l.contactName || '';
+    document.getElementById('editLocPhone').value = l.phone || '';
+    document.getElementById('editLocAddress').value = l.address || '';
+    document.getElementById('editLocError').style.display = 'none';
+    editLocModal.classList.add('active');
+  }
+
+  document.getElementById('closeEditLoc').addEventListener('click', ()=>editLocModal.classList.remove('active'));
+  document.getElementById('cancelEditLoc').addEventListener('click', ()=>editLocModal.classList.remove('active'));
+
+  document.getElementById('saveEditLoc').addEventListener('click', ()=>{
+    const l = locations.find(x=>x.id===editingLocId);
+    if(!l) return;
+    const err = document.getElementById('editLocError');
+    const newName = document.getElementById('editLocName').value.trim();
+    if(!newName){ err.textContent = currentLang==='en'?'Location name is required.':'Nama lokasi wajib diisi.'; err.style.display='block'; return; }
+    if(locations.some(x=>x.name.toLowerCase()===newName.toLowerCase() && x.id!==editingLocId)){
+      err.textContent = currentLang==='en'?'This location name already exists.':'Nama lokasi ini sudah ada.'; err.style.display='block'; return;
+    }
+    err.style.display='none';
+
+    l.name = newName;
+    l.contactName = document.getElementById('editLocContact').value.trim();
+    l.phone = document.getElementById('editLocPhone').value.trim();
+    l.address = document.getElementById('editLocAddress').value.trim();
+
+    saveData();
+    editLocModal.classList.remove('active');
+    renderAll();
+    showToast(currentLang==='en'?'Location updated.':'Lokasi diperbarui.');
+  });
+
+  function renderLocations(){
+    const body = document.getElementById('locationBody');
+    const rows = locations.slice().sort((a,b)=>a.name.localeCompare(b.name));
+    if(!rows.length){ body.innerHTML = `<tr class="empty-row"><td colspan="6">${currentLang==='en'?'No locations created yet.':'Belum ada lokasi penyimpanan.'}</td></tr>`; return; }
+    body.innerHTML = rows.map(l=>{
+      const itemCount = items.filter(i=>i.locationId===l.id).length;
+      return `<tr>
+        <td><strong>${escapeHtml(l.name)}</strong></td>
+        <td>${escapeHtml(l.address||'—')}</td>
+        <td>${escapeHtml(l.contactName||'—')}</td>
+        <td>${escapeHtml(l.phone||'—')}</td>
+        <td class="num">${fmtInt(itemCount)}</td>
+        <td>
+          <div class="row-actions">
+            <button class="btn-edit" data-edit-loc="${l.id}" title="${currentLang==='en'?'Edit Location':'Edit Lokasi'}">✎</button>
+            <button class="btn-danger" data-del-loc="${l.id}" title="${currentLang==='en'?'Delete Location':'Hapus Lokasi'}">✖</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    body.querySelectorAll('[data-edit-loc]').forEach(b=>{
+      b.addEventListener('click', ()=> openEditLocModal(b.getAttribute('data-edit-loc')));
+    });
+
+    body.querySelectorAll('[data-del-loc]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const id = b.getAttribute('data-del-loc');
+        const count = items.filter(i=>i.locationId===id).length;
+        if(count > 0 && !confirm(currentLang==='en'?`There are ${count} items assigned to this location. Remove location from them and delete?`:`Ada ${count} barang di lokasi ini. Hapus lokasi dari barang tersebut?`)) return;
+        items.forEach(i=>{ if(i.locationId===id) i.locationId=''; });
+        locations = locations.filter(l=>l.id!==id);
+        saveData();
+        renderAll();
+        showToast(currentLang==='en'?'Location deleted.':'Lokasi dihapus.');
+      });
+    });
+  }
+
+  document.getElementById('addLocBtn').addEventListener('click', ()=>{
+    const nameInput = document.getElementById('locNameInput');
+    const contactInput = document.getElementById('locContactInput');
+    const phoneInput = document.getElementById('locPhoneInput');
+    const addressInput = document.getElementById('locAddressInput');
+    const err = document.getElementById('locError');
+    err.style.display='none';
+
+    const name = nameInput.value.trim();
+    if(!name){ err.textContent = currentLang==='en'?'Location name is required.':'Nama lokasi wajib diisi.'; err.style.display='block'; return; }
+    if(locations.some(l=>l.name.toLowerCase()===name.toLowerCase())){ err.textContent = currentLang==='en'?'This location name already exists.':'Nama lokasi ini sudah ada.'; err.style.display='block'; return; }
+
+    locations.push({
+      id: uid(),
+      name,
+      contactName: contactInput.value.trim(),
+      phone: phoneInput.value.trim(),
+      address: addressInput.value.trim()
+    });
+
+    nameInput.value=''; contactInput.value=''; phoneInput.value=''; addressInput.value='';
+    saveData();
+    renderAll();
+    showToast(currentLang==='en'?'Location added.':'Lokasi ditambahkan.');
+  });
+
+  // ---------- vendors tab & edit modal ----------
+  const editVendorModal = document.getElementById('editVendorModal');
+
+  function openEditVendorModal(id){
+    const v = vendors.find(x=>x.id===id);
+    if(!v) return;
+    editingVendorId = id;
+    document.getElementById('editVendorName').value = v.name || '';
+    document.getElementById('editVendorContact').value = v.contactName || '';
+    document.getElementById('editVendorPhone').value = v.phone || '';
+    document.getElementById('editVendorError').style.display = 'none';
+    editVendorModal.classList.add('active');
+  }
+
+  document.getElementById('closeEditVendor').addEventListener('click', ()=>editVendorModal.classList.remove('active'));
+  document.getElementById('cancelEditVendor').addEventListener('click', ()=>editVendorModal.classList.remove('active'));
+
+  document.getElementById('saveEditVendor').addEventListener('click', ()=>{
+    const v = vendors.find(x=>x.id===editingVendorId);
+    if(!v) return;
+    const err = document.getElementById('editVendorError');
+    const newName = document.getElementById('editVendorName').value.trim();
+    if(!newName){ err.textContent = currentLang==='en'?'Vendor name is required.':'Nama pemasok wajib diisi.'; err.style.display='block'; return; }
+    if(vendors.some(x=>x.name.toLowerCase()===newName.toLowerCase() && x.id!==editingVendorId)){
+      err.textContent = currentLang==='en'?'This vendor name already exists.':'Nama pemasok ini sudah ada.'; err.style.display='block'; return;
+    }
+    err.style.display='none';
+
+    const oldName = v.name;
+    v.name = newName;
+    v.contactName = document.getElementById('editVendorContact').value.trim();
+    v.phone = document.getElementById('editVendorPhone').value.trim();
+
+    // Update vendor name in Stock In entries if changed
+    if(oldName !== newName){
+      stockIn.forEach(s=>{ if(s.vendor === oldName) s.vendor = newName; });
+    }
+
+    saveData();
+    editVendorModal.classList.remove('active');
+    renderAll();
+    showToast(currentLang==='en'?'Vendor updated.':'Pemasok diperbarui.');
+  });
+
+  function renderVendors(){
+    populateVendorSelect('siVendorSelect');
+    const body = document.getElementById('vendorBody');
+    const rows = vendors.slice().sort((a,b)=>a.name.localeCompare(b.name));
+    if(!rows.length){ body.innerHTML = `<tr class="empty-row"><td colspan="5">${currentLang==='en'?'No vendors yet — add one above.':'Belum ada pemasok — tambah di atas.'}</td></tr>`; return; }
+    body.innerHTML = rows.map(v=>{
+      const count = stockIn.filter(x=>x.vendor===v.name).length;
+      return `<tr>
+        <td><strong>${escapeHtml(v.name)}</strong></td>
+        <td>${escapeHtml(v.contactName||'—')}</td>
+        <td>${escapeHtml(v.phone||'—')}</td>
+        <td class="num">${fmtInt(count)}</td>
+        <td>
+          <div class="row-actions">
+            <button class="btn-edit" data-edit-vendor="${v.id}" title="${currentLang==='en'?'Edit Vendor':'Edit Pemasok'}">✎</button>
+            <button class="btn-danger" data-del-vendor="${v.id}" title="${currentLang==='en'?'Delete Vendor':'Hapus Pemasok'}">✖</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    body.querySelectorAll('[data-edit-vendor]').forEach(b=>{
+      b.addEventListener('click', ()=> openEditVendorModal(b.getAttribute('data-edit-vendor')));
+    });
+
+    body.querySelectorAll('[data-del-vendor]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        vendors = vendors.filter(v=>v.id!==b.getAttribute('data-del-vendor'));
+        saveData(); renderAll(); showToast(currentLang==='en'?'Vendor removed.':'Pemasok dihapus.');
+      });
+    });
+  }
+
+  function addVendor(name, contactName='', phone=''){
+    const trimmed = name.trim();
+    if(!trimmed) return null;
+    const existing = vendors.find(v=>v.name.toLowerCase()===trimmed.toLowerCase());
+    if(existing) return existing;
+    const v = {id: uid(), name: trimmed, contactName: contactName.trim(), phone: phone.trim()};
+    vendors.push(v);
+    return v;
+  }
+
+  document.getElementById('addVendorBtn').addEventListener('click', ()=>{
+    const nameInput = document.getElementById('vendorNameInput');
+    const contactInput = document.getElementById('vendorContactInput');
+    const phoneInput = document.getElementById('vendorPhoneInput');
+    const err = document.getElementById('vendorError');
+    err.style.display='none';
+
+    const name = nameInput.value.trim();
+    if(!name){ err.textContent = currentLang==='en'?'Enter a vendor name.':'Masukkan nama pemasok.'; err.style.display='block'; return; }
+    if(vendors.some(v=>v.name.toLowerCase()===name.toLowerCase())){ err.textContent = currentLang==='en'?'This vendor already exists.':'Pemasok ini sudah ada.'; err.style.display='block'; return; }
+
+    addVendor(name, contactInput.value, phoneInput.value);
+    nameInput.value=''; contactInput.value=''; phoneInput.value='';
+    saveData(); renderAll(); showToast(currentLang==='en'?'Vendor added.':'Pemasok ditambahkan.');
+  });
+
+  function populateVendorSelect(selId){
+    const sel = document.getElementById(selId);
+    if(!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">${t('selectVendorDefault')}</option>` +
+      vendors.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(v=>`<option value="${escapeHtml(v.name)}">${escapeHtml(v.name)}</option>`) +
+      (selId==='siVendorSelect' ? `<option value="__add__">${t('selectVendorAdd')}</option>` : '');
+    if(cur && cur!=='__add__') sel.value = cur;
+  }
+
+  document.getElementById('siVendorSelect').addEventListener('change', function(){
+    if(this.value === '__add__'){
+      const name = prompt(currentLang==='en'?'New vendor name:':'Nama pemasok baru:');
+      if(name && name.trim()){
+        const v = addVendor(name);
+        saveData();
+        populateVendorSelect('siVendorSelect');
+        this.value = v.name;
+      }else{ this.value = ''; }
+    }
+  });
+
+  // ---------- render + submit: stock in ----------
+  function renderStockIn(){
+    populateVendorSelect('siVendorSelect');
+    resetItemCombo('siItemSearch');
+    if(siSelectedItemId){
+      const it = items.find(i=>i.id===siSelectedItemId);
+      if(it) document.getElementById('siItemSearch').value = it.code ? `[${it.code}] ${it.name}` : it.name; else siSelectedItemId = '';
+    }
+
+    const fromInput = document.getElementById('siLogMonthFrom');
+    const toInput = document.getElementById('siLogMonthTo');
+    const allDates = stockIn.filter(x => x.vendor !== 'Opening balance').map(x=>x.receivedDate).filter(Boolean).sort();
+
+    if(!siLogMonthInit){
+      fromInput.value = allDates.length ? monthOf(allDates[0]) : todayISO().slice(0,7);
+      toInput.value = allDates.length ? monthOf(allDates[allDates.length-1]) : todayISO().slice(0,7);
+      siLogMonthInit = true;
+    }
+    const fromM = fromInput.value || '0000-00';
+    const toM = toInput.value || '9999-99';
+
+    const body = document.getElementById('stockInBody');
+    // Hide 'Opening balance' entries and filter by selected month range
+    const rows = stockIn.filter(x => x.vendor !== 'Opening balance' && monthOf(x.receivedDate) >= fromM && monthOf(x.receivedDate) <= toM).slice().sort((a,b)=> {
+      if((b.createdAt||0) !== (a.createdAt||0)) return (b.createdAt||0) - (a.createdAt||0);
+      return (b.receivedDate||'').localeCompare(a.receivedDate||'');
+    });
+    if(!rows.length){ body.innerHTML = `<tr class="empty-row"><td colspan="10">${currentLang==='en'?'No stock-in entries logged in this date range.':'Belum ada catatan barang masuk dalam rentang tanggal ini.'}</td></tr>`; return; }
+    body.innerHTML = rows.map(x=>{
+      const it = items.find(i=>i.id===x.itemId);
+      const totalWeight = Number(x.qty||0) * Number(it? it.weightKg||0 : 0);
+      const cost = totalWeight * Number(globalPricePerKg||0);
+
+      return `<tr>
+        <td>${escapeHtml(it? it.code||'—' : '—')}</td>
+        <td>${escapeHtml(it? it.name : (currentLang==='en'?'Deleted item':'Barang dihapus'))}</td>
+        <td>${escapeHtml(it? it.category : '—')}</td>
+        <td>${escapeHtml(x.vendor||'—')}</td>
+        <td>${escapeHtml(x.orderNo||'—')}</td>
+        <td>${x.receivedDate||'—'}</td>
+        <td class="num">${fmtInt(x.qty)}</td>
+        <td class="num">${fmtRp(cost)}</td>
+        <td>${x.notes? `<span class="note-preview" title="${escapeHtml(x.notes)}">${escapeHtml(x.notes)}</span>` : '—'}</td>
+        <td>
+          <div class="row-actions">
+            <button class="btn-edit" data-edit-in="${x.id}" title="${currentLang==='en'?'Edit Entry':'Edit Catatan'}">✎</button>
+            <button class="btn-danger" data-del-in="${x.id}" title="${currentLang==='en'?'Delete Entry':'Hapus Catatan'}">✖</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+    body.querySelectorAll('[data-del-in]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        stockIn = stockIn.filter(x=>x.id!==b.getAttribute('data-del-in'));
+        saveData(); renderAll(); showToast(currentLang==='en'?'Entry removed.':'Catatan dihapus.');
+      });
+    });
+    body.querySelectorAll('[data-edit-in]').forEach(b=>{
+      b.addEventListener('click', ()=> openEditSiModal(b.getAttribute('data-edit-in')));
+    });
+  }
+
+  document.getElementById('siLogMonthFrom').addEventListener('change', renderStockIn);
+  document.getElementById('siLogMonthTo').addEventListener('change', renderStockIn);
+
+  document.getElementById('siSubmit').addEventListener('click', ()=>{
+    const err = document.getElementById('siError');
+    err.style.display='none';
+    const qty = Number(document.getElementById('siQty').value);
+    const receivedDate = document.getElementById('siReceivedDate').value || todayISO();
+    const vendorSel = document.getElementById('siVendorSelect');
+    const vendor = vendorSel.value === '__add__' ? '' : vendorSel.value;
+    const orderNo = document.getElementById('siOrderNo').value.trim();
+    const notes = document.getElementById('siNotes').value.trim();
+
+    if(!siSelectedItemId){
+      err.textContent = currentLang==='en'?'Please search and select an existing item. Create new items in Inventory tab.':'Silakan cari dan pilih barang. Tambah barang baru dari tab Inventaris.';
+      err.style.display='block';
+      return;
+    }
+    if(!qty || qty<=0){ err.textContent = currentLang==='en'?'Enter a quantity greater than zero.':'Masukkan jumlah lebih dari nol.'; err.style.display='block'; return; }
+
+    stockIn.push({
+      id: uid(),
+      itemId: siSelectedItemId,
+      vendor, orderNo,
+      receivedDate,
+      qty, notes,
+      history:[{ts:nowStamp(), summary:'Created'}],
+      createdAt: Date.now()
+    });
+    saveData();
+
+    document.getElementById('siOrderNo').value='';
+    document.getElementById('siQty').value='';
+    document.getElementById('siReceivedDate').value = todayISO();
+    document.getElementById('siNotes').value='';
+    document.getElementById('siVendorSelect').value='';
+    siSelectedItemId = '';
+
+    renderAll();
+    showToast(currentLang==='en'?'Stock-in entry added.':'Catatan barang masuk ditambahkan.');
+  });
+
+  const editSiModal = document.getElementById('editSiModal');
+  function openEditSiModal(id){
+    const x = stockIn.find(e=>e.id===id);
+    if(!x) return;
+    editingStockInId = id;
+    document.getElementById('editSiTitle').textContent = x.vendor==='Opening balance' ? t('modalEditObTitle') : t('modalEditSiTitle');
+    populateVendorSelect('editSiVendor');
+    document.getElementById('editSiVendor').value = x.vendor||'';
+    document.getElementById('editSiOrderNo').value = x.orderNo||'';
+    document.getElementById('editSiReceivedDate').value = x.receivedDate||'';
+    document.getElementById('editSiQty').value = x.qty||0;
+    document.getElementById('editSiNotes').value = x.notes||'';
+    document.getElementById('editSiError').style.display='none';
+    const hist = document.getElementById('editSiHistory');
+    const h = x.history||[];
+    hist.innerHTML = h.length ? h.slice().reverse().map(e=>`<div class="history-item">${escapeHtml(e.ts)} — ${escapeHtml(e.summary)}</div>`).join('') : `<div class="history-item">${currentLang==='en'?'No history yet.':'Belum ada riwayat.'}</div>`;
+    editSiModal.classList.add('active');
+  }
+  document.getElementById('closeEditSi').addEventListener('click', ()=>editSiModal.classList.remove('active'));
+  document.getElementById('cancelEditSi').addEventListener('click', ()=>editSiModal.classList.remove('active'));
+  document.getElementById('saveEditSi').addEventListener('click', ()=>{
+    const x = stockIn.find(e=>e.id===editingStockInId);
+    if(!x) return;
+    const err = document.getElementById('editSiError');
+    const newQty = Number(document.getElementById('editSiQty').value);
+    if(!newQty || newQty<=0){ err.textContent = currentLang==='en'?'Quantity must be greater than zero.':'Jumlah harus lebih dari nol.'; err.style.display='block'; return; }
+    err.style.display='none';
+
+    const newVendor = document.getElementById('editSiVendor').value==='__add__' ? x.vendor : document.getElementById('editSiVendor').value;
+    const newOrderNo = document.getElementById('editSiOrderNo').value.trim();
+    const newReceivedDate = document.getElementById('editSiReceivedDate').value || x.receivedDate;
+    const newNotes = document.getElementById('editSiNotes').value.trim();
+
+    const changes = [];
+    if(newVendor !== x.vendor) changes.push(`Vendor: ${x.vendor||'—'} → ${newVendor||'—'}`);
+    if(newOrderNo !== x.orderNo) changes.push(`Order #: ${x.orderNo||'—'} → ${newOrderNo||'—'}`);
+    if(newReceivedDate !== x.receivedDate) changes.push(`Received date: ${x.receivedDate||'—'} → ${newReceivedDate}`);
+    if(newQty !== x.qty) changes.push(`Qty: ${x.qty} → ${newQty}`);
+    if(newNotes !== x.notes) changes.push('Notes updated');
+
+    x.vendor = newVendor; x.orderNo = newOrderNo;
+    x.qty = newQty;
+    x.receivedDate = newReceivedDate;
+    x.notes = newNotes;
+    x.history = x.history || [];
+    if(changes.length) x.history.push({ts: nowStamp(), summary: changes.join('; ')});
+
+    saveData();
+    editSiModal.classList.remove('active');
+    renderAll();
+    showToast(currentLang==='en'?'Stock-in entry updated.':'Catatan barang masuk diperbarui.');
+  });
+
+  // ---------- render + submit: stock out ----------
+  function updateAvailability(){
+    const hint = document.getElementById('soAvail');
+    const it = items.find(i=>i.id===soSelectedItemId);
+    if(!it){ hint.textContent=''; return; }
+    const s = itemStats(it);
+    hint.textContent = currentLang==='en' ? `On hand: ${fmtInt(s.onHand)} units · Avg cost ${fmtRp(s.avgCost)}` : `Stok ada: ${fmtInt(s.onHand)} unit · Rata-rata biaya ${fmtRp(s.avgCost)}`;
+  }
+  function renderStockOut(){
+    resetItemCombo('soItemSearch');
+    if(soSelectedItemId){
+      const it = items.find(i=>i.id===soSelectedItemId);
+      if(it) document.getElementById('soItemSearch').value = it.code ? `[${it.code}] ${it.name}` : it.name; else soSelectedItemId = '';
+    }
+    updateAvailability();
+
+    const fromInput = document.getElementById('soLogMonthFrom');
+    const toInput = document.getElementById('soLogMonthTo');
+    const allDates = stockOut.map(x=>x.date).filter(Boolean).sort();
+
+    if(!soLogMonthInit){
+      fromInput.value = allDates.length ? monthOf(allDates[0]) : todayISO().slice(0,7);
+      toInput.value = allDates.length ? monthOf(allDates[allDates.length-1]) : todayISO().slice(0,7);
+      soLogMonthInit = true;
+    }
+    const fromM = fromInput.value || '0000-00';
+    const toM = toInput.value || '9999-99';
+
+    const body = document.getElementById('stockOutBody');
+    const rows = stockOut.filter(x => monthOf(x.date) >= fromM && monthOf(x.date) <= toM).slice().sort((a,b)=> {
+      if((b.createdAt||0) !== (a.createdAt||0)) return (b.createdAt||0) - (a.createdAt||0);
+      return (b.date||'').localeCompare(a.date||'');
+    });
+    if(!rows.length){ body.innerHTML = `<tr class="empty-row"><td colspan="8">${currentLang==='en'?'No stock-out entries logged in this date range.':'Belum ada catatan barang keluar dalam rentang tanggal ini.'}</td></tr>`; return; }
+    body.innerHTML = rows.map(x=>{
+      const it = items.find(i=>i.id===x.itemId);
+      return `<tr>
+        <td>${escapeHtml(it? it.code||'—' : '—')}</td>
+        <td>${escapeHtml(it? it.name : (currentLang==='en'?'Deleted item':'Barang dihapus'))}</td>
+        <td>${escapeHtml(it? it.category : '—')}</td>
+        <td>${escapeHtml(x.kegunaan||'—')}</td>
+        <td>${x.date||'—'}</td>
+        <td class="num">${fmtInt(x.qty)}</td>
+        <td>${x.notes? `<span class="note-preview" title="${escapeHtml(x.notes)}">${escapeHtml(x.notes)}</span>` : '—'}</td>
+        <td>
+          <div class="row-actions">
+            <button class="btn-edit" data-edit-out="${x.id}" title="${currentLang==='en'?'Edit Entry':'Edit Catatan'}">✎</button>
+            <button class="btn-danger" data-del-out="${x.id}" title="${currentLang==='en'?'Delete Entry':'Hapus Catatan'}">✖</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+    body.querySelectorAll('[data-del-out]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        stockOut = stockOut.filter(x=>x.id!==b.getAttribute('data-del-out'));
+        saveData(); renderAll(); showToast(currentLang==='en'?'Entry removed.':'Catatan dihapus.');
+      });
+    });
+    body.querySelectorAll('[data-edit-out]').forEach(b=>{
+      b.addEventListener('click', ()=> openEditSoModal(b.getAttribute('data-edit-out')));
+    });
+  }
+
+  document.getElementById('soLogMonthFrom').addEventListener('change', renderStockOut);
+  document.getElementById('soLogMonthTo').addEventListener('change', renderStockOut);
+
+  document.getElementById('soSubmit').addEventListener('click', ()=>{
+    const err = document.getElementById('soError');
+    err.style.display='none';
+    const itemId = soSelectedItemId;
+    const qty = Number(document.getElementById('soQty').value);
+    const date = document.getElementById('soDate').value || todayISO();
+    const kegunaan = document.getElementById('soKegunaan').value.trim();
+    const notes = document.getElementById('soNotes').value.trim();
+
+    if(!itemId){ err.textContent = currentLang==='en'?'Search and select an item.':'Cari dan pilih barang.'; err.style.display='block'; return; }
+    if(!qty || qty<=0){ err.textContent = currentLang==='en'?'Enter a quantity greater than zero.':'Masukkan jumlah lebih dari nol.'; err.style.display='block'; return; }
+    const it = items.find(i=>i.id===itemId);
+    const s = itemStats(it);
+    if(qty > s.onHand){
+      err.textContent = currentLang==='en' ? `Only ${fmtInt(s.onHand)} units on hand — reduce the quantity or log stock in first.` : `Hanya tersisa ${fmtInt(s.onHand)} unit — kurangi jumlah atau catat barang masuk terlebih dahulu.`;
+      err.style.display='block';
+      return;
+    }
+    stockOut.push({id:uid(), itemId, kegunaan, date, qty, notes, history:[{ts:nowStamp(), summary:'Created'}], createdAt: Date.now()});
+    saveData();
+
+    document.getElementById('soKegunaan').value='';
+    document.getElementById('soQty').value='';
+    document.getElementById('soNotes').value='';
+    soSelectedItemId = '';
+
+    renderAll();
+    showToast(currentLang==='en'?'Stock-out entry added.':'Catatan barang keluar ditambahkan.');
+  });
+
+  const editSoModal = document.getElementById('editSoModal');
+  function openEditSoModal(id){
+    const x = stockOut.find(e=>e.id===id);
+    if(!x) return;
+    editingStockOutId = id;
+    document.getElementById('editSoDate').value = x.date||'';
+    document.getElementById('editSoKegunaan').value = x.kegunaan||'';
+    document.getElementById('editSoQty').value = x.qty||0;
+    document.getElementById('editSoNotes').value = x.notes||'';
+    document.getElementById('editSoError').style.display='none';
+    const hist = document.getElementById('editSoHistory');
+    const h = x.history||[];
+    hist.innerHTML = h.length ? h.slice().reverse().map(e=>`<div class="history-item">${escapeHtml(e.ts)} — ${escapeHtml(e.summary)}</div>`).join('') : `<div class="history-item">${currentLang==='en'?'No history yet.':'Belum ada riwayat.'}</div>`;
+    editSoModal.classList.add('active');
+  }
+  document.getElementById('closeEditSo').addEventListener('click', ()=>editSoModal.classList.remove('active'));
+  document.getElementById('cancelEditSo').addEventListener('click', ()=>editSoModal.classList.remove('active'));
+  document.getElementById('saveEditSo').addEventListener('click', ()=>{
+    const x = stockOut.find(e=>e.id===editingStockOutId);
+    if(!x) return;
+    const err = document.getElementById('editSoError');
+    const newQty = Number(document.getElementById('editSoQty').value);
+    if(!newQty || newQty<=0){ err.textContent = currentLang==='en'?'Quantity must be greater than zero.':'Jumlah harus lebih dari nol.'; err.style.display='block'; return; }
+
+    const it = items.find(i=>i.id===x.itemId);
+    const s = itemStats(it);
+    const availableIfChanged = s.onHand + Number(x.qty||0) - newQty;
+    if(availableIfChanged < 0){
+      err.textContent = currentLang==='en' ? `Not enough stock — max quantity for this entry is ${fmtInt(s.onHand + Number(x.qty||0))}.` : `Stok tidak cukup — jumlah maksimal untuk catatan ini adalah ${fmtInt(s.onHand + Number(x.qty||0))}.`;
+      err.style.display='block';
+      return;
+    }
+    err.style.display='none';
+
+    const newDate = document.getElementById('editSoDate').value || x.date;
+    const newKegunaan = document.getElementById('editSoKegunaan').value.trim();
+    const newNotes = document.getElementById('editSoNotes').value.trim();
+
+    const changes = [];
+    if(newDate !== x.date) changes.push(`Date: ${x.date||'—'} → ${newDate}`);
+    if(newKegunaan !== x.kegunaan) changes.push(`Kegunaan: ${x.kegunaan||'—'} → ${newKegunaan||'—'}`);
+    if(newQty !== x.qty) changes.push(`Qty: ${x.qty} → ${newQty}`);
+    if(newNotes !== x.notes) changes.push('Notes updated');
+
+    x.date = newDate; x.kegunaan = newKegunaan; x.qty = newQty; x.notes = newNotes;
+    x.history = x.history || [];
+    if(changes.length) x.history.push({ts: nowStamp(), summary: changes.join('; ')});
+
+    saveData();
+    editSoModal.classList.remove('active');
+    renderAll();
+    showToast(currentLang==='en'?'Stock-out entry updated.':'Catatan barang keluar diperbarui.');
+  });
+
+  // ---------- reset ----------
+  document.getElementById('resetBtn').addEventListener('click', async ()=>{
+    if(!confirm(currentLang==='en'?'This clears all items, log entries, vendors, locations, photos and pricing history. This cannot be undone. Continue?':'Ini akan menghapus seluruh barang, catatan, pemasok, lokasi, foto, dan riwayat harga. Tindakan ini tidak dapat dibatalkan. Lanjutkan?')) return;
+    for(const id of Object.keys(itemImages)){
+      try{ await storageApi.delete('item-image:'+id); }catch(e){}
+    }
+    itemImages = {};
+    items = []; stockIn = []; stockOut = []; vendors = []; locations = [];
+    globalPricePerKg = 0; globalPriceHistory = [];
+    siSelectedItemId=''; soSelectedItemId=''; analyticsSelectedItemId='';
+    activityMonthInit = false; topItemsMonthInit = false; analyticsMonthInit = false; siLogMonthInit = false; soLogMonthInit = false;
+    saveData();
+    renderAll();
+    showToast(currentLang==='en'?'All data cleared.':'Seluruh data berhasil dihapus.');
+  });
+
+  // ---------- export ZIP Backup ----------
+  document.getElementById('exportSaveBtn').addEventListener('click', async () => {
+    if(!items.length){ showToast(currentLang==='en'?'Add at least one item before exporting.':'Tambah minimal satu barang sebelum mengekspor.', true); return; }
+    
+    const zip = new JSZip();
+    
+    // Create the JSON data file
+    const dataObj = { items, stockIn, stockOut, vendors, locations, globalPricePerKg, globalPriceHistory };
+    zip.file("stock_monitor_data.json", JSON.stringify(dataObj, null, 2));
+    
+    // Create an images folder inside the zip mapping file names to exact item IDs
+    const imgFolder = zip.folder("images");
+    for (const [id, dataUrl] of Object.entries(itemImages)) {
+      const base64Data = dataUrl.split(',')[1];
+      if (base64Data) {
+         imgFolder.file(`${id}.jpg`, base64Data, {base64: true});
+      }
+    }
+    
+    const content = await zip.generateAsync({type:"blob"});
+    saveAs(content, `Stock_Monitor_Backup_${todayISO()}.zip`);
+    showToast(currentLang==='en'?'Save Data Zipped and Exported!':'File simpanan ZIP berhasil diekspor!');
+  });
+
+  // ---------- import ----------
+  document.getElementById('importBtn').addEventListener('click', ()=>{ document.getElementById('importFile').click(); });
+  document.getElementById('importFile').addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+
+    if (file.name.endsWith('.zip')) {
+      try {
+        const zip = await JSZip.loadAsync(file);
+        
+        const jsonText = await zip.file("stock_monitor_data.json").async("string");
+        const parsed = JSON.parse(jsonText);
+        
+        items = (parsed.items || []).map(it => ({code:'', purposes:[], locationId:'', maxStock:'', weightKg:0, category:'Plat', ...it}));
+        stockIn = (parsed.stockIn || []).map(x => ({createdAt: Date.now(), receivedDate: x.receivedDate || x.orderedDate || '', ...x}));
+        stockOut = (parsed.stockOut || []).map(x => ({createdAt: Date.now(), ...x}));
+        vendors = (parsed.vendors || []).map(v => ({contactName:'', phone:'', ...v}));
+        locations = parsed.locations || [];
+        globalPricePerKg = Number(parsed.globalPricePerKg||0);
+        globalPriceHistory = parsed.globalPriceHistory || [];
+
+        for (const id of Object.keys(itemImages)) {
+          try{ await storageApi.delete('item-image:'+id); }catch(err){}
+        }
+        itemImages = {};
+        
+        const imgFolder = zip.folder("images");
+        if (imgFolder) {
+          for (const relativePath of Object.keys(imgFolder.files)) {
+             const fileData = imgFolder.files[relativePath];
+             if (!fileData.dir) {
+                const fileName = relativePath.split('/').pop();
+                const id = fileName.split('.')[0];
+                const base64 = await fileData.async("base64");
+                itemImages[id] = "data:image/jpeg;base64," + base64;
+                try{ await storageApi.set('item-image:'+id, itemImages[id]); }catch(err){}
+             }
+          }
+        }
+        
+        siSelectedItemId=''; soSelectedItemId=''; analyticsSelectedItemId='';
+        activityMonthInit = false; topItemsMonthInit = false; analyticsMonthInit = false; siLogMonthInit = false; soLogMonthInit = false;
+        saveData();
+        renderAll();
+        showToast(currentLang==='en'?'Zip Data and Images imported successfully.':'Data ZIP dan gambar berhasil diimpor.');
+      } catch (err) {
+        console.error(err);
+        showToast(currentLang==='en'?'Failed to read ZIP file.':'Gagal membaca file ZIP.', true);
+      } finally { e.target.value = ''; }
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async function(evt){
+      try{
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data, {type:'array', cellDates:true});
+        const result = parseWorkbook(wb);
+        if(!result.items.length){ showToast(currentLang==='en'?'No recognizable item rows found in that file.':'Tidak ada baris barang yang dikenali dalam file tersebut.', true); return; }
+        const photoCount = Object.keys(result.photosByName).length;
+        const msg = currentLang==='en' ? `Import will replace all current data with ${result.items.length} item(s), ${result.stockIn.length} stock-in entr${result.stockIn.length===1?'y':'ies'}, ${result.stockOut.length} stock-out entr${result.stockOut.length===1?'y':'ies'}, ${result.vendors.length} vendor(s), ${photoCount} photo(s), and the material price history. Continue?` : `Impor akan menggantikan seluruh data saat ini dengan ${result.items.length} barang, ${result.stockIn.length} catatan masuk, ${result.stockOut.length} catatan keluar, ${result.vendors.length} pemasok, ${photoCount} foto, dan riwayat harga material. Lanjutkan?`;
+        if(!confirm(msg)){ e.target.value=''; return; }
+
+        for(const id of Object.keys(itemImages)){
+          try{ await storageApi.delete('item-image:'+id); }catch(err){}
+        }
+        itemImages = {};
+
+        items = result.items;
+        stockIn = result.stockIn;
+        stockOut = result.stockOut;
+        vendors = result.vendors;
+        globalPricePerKg = result.globalPricePerKg;
+        globalPriceHistory = result.globalPriceHistory;
+
+        for(const it of items){
+          const key = it.name.trim().toLowerCase();
+          if(result.photosByName[key]){
+            const dataUrl = result.photosByName[key];
+            itemImages[it.id] = dataUrl;
+            try{ await storageApi.set('item-image:'+it.id, dataUrl); }catch(err){}
+          }
+        }
+
+        siSelectedItemId=''; soSelectedItemId=''; analyticsSelectedItemId='';
+        activityMonthInit = false; topItemsMonthInit = false; analyticsMonthInit = false; siLogMonthInit = false; soLogMonthInit = false;
+        saveData();
+        renderAll();
+        showToast(currentLang==='en'?'Data imported successfully.':'Data berhasil diimpor.');
+      }catch(err){
+        console.error(err);
+        showToast(currentLang==='en'?'Could not read that file — is it a workbook exported from this tool?':'Gagal membaca file — apakah ini file Excel hasil ekspor alat ini?', true);
+      }finally{ e.target.value = ''; }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+
+  function toISODate(val){
+    if(val==null || val==='') return '';
+    if(val instanceof Date && !isNaN(val)) return val.toISOString().slice(0,10);
+    if(typeof val === 'number'){
+      const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+      if(!isNaN(d)) return d.toISOString().slice(0,10);
+    }
+    const s = String(val).trim();
+    const d2 = new Date(s);
+    if(!isNaN(d2) && /\d{4}/.test(s)) return d2.toISOString().slice(0,10);
+    return s;
+  }
+  function sheetRows(wb, name){
+    const ws = wb.Sheets[name];
+    if(!ws) return null;
+    return XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:true});
+  }
+  function parsePurposes(str){
+    return String(str||'').split(/[;,]/).map(s=>s.trim()).filter(Boolean);
+  }
+  function findItemId(itemMap, name, category, purposesStr, minStock, maxStock, code=''){
+    const key = String(name||'').trim().toLowerCase();
+    if(!key) return null;
+    
+    let catVal = String(category||'').trim();
+    const matchedCat = CATEGORIES.find(c => c.toLowerCase() === catVal.toLowerCase());
+    catVal = matchedCat || 'Plat';
+
+    if(itemMap.has(key)){
+      const existing = itemMap.get(key);
+      if(purposesStr){
+        parsePurposes(purposesStr).forEach(p=>{ if(!existing.purposes.some(x=>x.toLowerCase()===p.toLowerCase())) existing.purposes.push(p); });
+      }
+      if(maxStock!==undefined && maxStock!=='' && !isNaN(Number(maxStock))) existing.maxStock = Number(maxStock);
+      if(code && !existing.code) existing.code = String(code).trim();
+      return existing.id;
+    }
+    const id = uid();
+    itemMap.set(key, {
+      id, code: String(code||'').trim(), name: String(name).trim(), locationId:'', category: catVal, minStock: Number(minStock)||1,
+      maxStock: (maxStock!==undefined && maxStock!=='' && !isNaN(Number(maxStock))) ? Number(maxStock) : '',
+      weightKg: 0,
+      purposes: parsePurposes(purposesStr)
+    });
+    return id;
+  }
+  function parseWorkbook(wb){
+    const itemMap = new Map();
+    const vendorSet = new Set();
+    const newStockIn = [];
+    const newStockOut = [];
+
+    const invRows = sheetRows(wb, 'Inventory Summary');
+    if(invRows){
+      for(let r=2; r<invRows.length; r++){
+        const row = invRows[r];
+        if(!row || !row[1]) continue;
+        findItemId(itemMap, row[1], row[3], row[2], row[12], row[13], row[0]);
+      }
+    }
+    const masukRows = sheetRows(wb, 'Masuk');
+    if(masukRows){
+      for(let r=2; r<masukRows.length; r++){
+        const row = masukRows[r];
+        if(!row || !row[1]) continue;
+        const itemId = findItemId(itemMap, row[1], row[3], row[2], 1, '', row[0]);
+        const receivedDate = toISODate(row[7]) || toISODate(row[6]);
+        const vendorName = String(row[4]||'').trim();
+        if(vendorName) vendorSet.add(vendorName);
+        const parsedHist = parseHistoryString(row[12]);
+        newStockIn.push({
+          id: uid(), itemId,
+          vendor: vendorName, orderNo: String(row[5]||''),
+          receivedDate,
+          qty: Number(row[9])||0,
+          notes: String(row[11]||''),
+          history: parsedHist.length ? [...parsedHist, {ts:nowStamp(), summary:'Re-imported from Excel'}] : [{ts:nowStamp(), summary:'Imported from Excel'}],
+          createdAt: Date.now() - r
+        });
+      }
+    }
+    const keluarRows = sheetRows(wb, 'Keluar');
+    if(keluarRows){
+      for(let r=2; r<keluarRows.length; r++){
+        const row = keluarRows[r];
+        if(!row || !row[1]) continue;
+        const itemId = findItemId(itemMap, row[1], row[3], '', 1, '', row[0]);
+        const parsedHist = parseHistoryString(row[7]);
+        newStockOut.push({
+          id: uid(), itemId,
+          kegunaan: String(row[2]||''), date: toISODate(row[4]),
+          qty: Number(row[5])||0,
+          notes: String(row[6]||''),
+          history: parsedHist.length ? [...parsedHist, {ts:nowStamp(), summary:'Re-imported from Excel'}] : [{ts:nowStamp(), summary:'Imported from Excel'}],
+          createdAt: Date.now() - r
+        });
+      }
+    }
+
+    const vendorRows = sheetRows(wb, 'Vendors');
+    const parsedVendors = [];
+    if(vendorRows && vendorRows.length>1){
+      for(let r=1; r<vendorRows.length; r++){
+        const row = vendorRows[r];
+        if(!row || !row[0]) continue;
+        const vName = String(row[0]).trim();
+        const vContact = String(row[1]||'').trim();
+        const vPhone = String(row[2]||'').trim();
+        if(vName) parsedVendors.push({id: uid(), name: vName, contactName: vContact, phone: vPhone});
+      }
+    } else {
+      Array.from(vendorSet).forEach(n=>{ parsedVendors.push({id: uid(), name: n, contactName: '', phone: ''}); });
+    }
+
+    let newGlobalPrice = 0, newGlobalHistory = [];
+    const pricingRows = sheetRows(wb, 'Material Pricing');
+    if(pricingRows && pricingRows.length){
+      if(pricingRows[0] && String(pricingRows[0][0]||'').toLowerCase().indexOf('current price')===0){
+        newGlobalPrice = Number(pricingRows[0][1])||0;
+      }
+      const headerIdx = pricingRows.findIndex(r=> r && r[0]==='Timestamp');
+      if(headerIdx>=0){
+        for(let r=headerIdx+1;r<pricingRows.length;r++){
+          const row = pricingRows[r];
+          if(!row || !row[0]) continue;
+          newGlobalHistory.push({ts:String(row[0]), oldPrice:Number(row[1])||0, newPrice:Number(row[2])||0});
+        }
+      }
+    }
+
+    const photoRows = sheetRows(wb, 'Photos');
+    const photosByName = {};
+    if(photoRows && photoRows.length>1){
+      const chunkMap = {};
+      for(let r=1;r<photoRows.length;r++){
+        const row = photoRows[r];
+        if(!row || !row[0]) continue;
+        const key = String(row[0]).trim().toLowerCase();
+        const idx = Number(row[1])||0;
+        const data = String(row[2]||'');
+        if(!chunkMap[key]) chunkMap[key] = [];
+        chunkMap[key][idx] = data;
+      }
+      Object.keys(chunkMap).forEach(key=>{
+        photosByName[key] = chunkMap[key].join('');
+      });
+    }
+
+    return {
+      items: Array.from(itemMap.values()),
+      stockIn: newStockIn,
+      stockOut: newStockOut,
+      vendors: parsedVendors,
+      globalPricePerKg: newGlobalPrice,
+      globalPriceHistory: newGlobalHistory,
+      photosByName
+    };
+  }
+
+  // ---------- export ----------
+  document.getElementById('exportBtn').addEventListener('click', ()=>{
+    if(!items.length){ showToast(currentLang==='en'?'Add at least one item before exporting.':'Tambah minimal satu barang sebelum mengekspor.', true); return; }
+
+    const invHeaderGroup = ['Item Description','','','','','Purchases','','','','','','Usage','Inventory Summary','','','',''];
+    const invHeader = ['Item Code','Item','Location','Purpose(s)','Category','Initial Order','Purchases','Stok Bahan','Total Weight (kg)','Total Cost','Cost Per Item','Total Bahan Keluar','Stok Sekarang','Stok Minimum','Stok Maksimum','Inventory Value','Status'];
+    const invRows = items.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(it=>{
+      const s = itemStats(it);
+      const fi = firstInDate(it.id);
+      const initialOrder = fi ? Number(fi.qty||0) : 0;
+      const locObj = locations.find(l=>l.id===it.locationId);
+      return [
+        it.code||'', it.name, locObj ? locObj.name : '', (it.purposes||[]).join('; '), it.category||'',
+        initialOrder, s.purchased, s.purchased, round2(s.totalWeight),
+        round2(s.totalCost), round2(s.avgCost),
+        s.sold, s.onHand, Number(it.minStock||0), (it.maxStock===''||it.maxStock==null)?'':Number(it.maxStock),
+        round2(s.invValue), s.status
+      ];
+    });
+    const wsInv = XLSX.utils.aoa_to_sheet([invHeaderGroup, invHeader, ...invRows]);
+    wsInv['!merges'] = [
+      {s:{r:0,c:0},e:{r:0,c:4}}, {s:{r:0,c:5},e:{r:0,c:10}}, {s:{r:0,c:12},e:{r:0,c:16}}
+    ];
+    wsInv['!cols'] = invHeader.map(h => ({wch: Math.max(12, h.length+2)}));
+
+    const masukHeader = ['Item Code','Item','Purpose(s)','Category','Vendor / Supplier','Order #','Received Date','Quantity Purchases','Total Cost','Notes','History'];
+    const masukRows = stockIn.slice().sort((a,b)=>(a.receivedDate||'').localeCompare(b.receivedDate||'')).map(x=>{
+      const it = items.find(i=>i.id===x.itemId);
+      const totalWeight = Number(x.qty||0) * Number(it? it.weightKg||0 : 0);
+      const cost = totalWeight * Number(globalPricePerKg||0);
+      return [
+        it? it.code||'' : '', it? it.name:'(deleted item)', it? (it.purposes||[]).join('; ') : '', it? it.category||'':'',
+        x.vendor||'', x.orderNo||'', x.receivedDate||'',
+        Number(x.qty||0), round2(cost), x.notes||'', serializeHistory(x.history)
+      ];
+    });
+    const wsMasuk = XLSX.utils.aoa_to_sheet([['Bahan Masuk Gudang'], masukHeader, ...masukRows]);
+    wsMasuk['!merges'] = [{s:{r:0,c:0},e:{r:0,c:10}}];
+    wsMasuk['!cols'] = masukHeader.map(h => ({wch: Math.max(12, h.length+2)}));
+
+    const keluarHeader = ['Item Code','Item','Kegunaan','Category','Tanggal Keluar','Jumlah Keluar','Notes','History'];
+    const keluarRows = stockOut.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(x=>{
+      const it = items.find(i=>i.id===x.itemId);
+      return [ it? it.code||'' : '', it? it.name:'(deleted item)', x.kegunaan||'', it? it.category||'':'', x.date||'', Number(x.qty||0), x.notes||'', serializeHistory(x.history) ];
+    });
+    const wsKeluar = XLSX.utils.aoa_to_sheet([['Bahan Keluar Gudang'], keluarHeader, ...keluarRows]);
+    wsKeluar['!merges'] = [{s:{r:0,c:0},e:{r:0,c:7}}];
+    wsKeluar['!cols'] = keluarHeader.map(h => ({wch: Math.max(12, h.length+2)}));
+
+    const locationSheetRows = locations.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(l=>[l.name, l.address||'', l.contactName||'', l.phone||'']);
+    const wsLocations = XLSX.utils.aoa_to_sheet([['Location Name', 'Address', 'Contact Person', 'Phone Number'], ...locationSheetRows]);
+    wsLocations['!cols'] = [{wch:20}, {wch:30}, {wch:20}, {wch:18}];
+
+    const vendorSheetRows = vendors.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(v=>[v.name, v.contactName||'', v.phone||'']);
+    const wsVendors = XLSX.utils.aoa_to_sheet([['Vendor Name', 'Contact Person', 'Phone Number'], ...vendorSheetRows]);
+    wsVendors['!cols'] = [{wch:28}, {wch:20}, {wch:18}];
+
+    const pricingSheetRows = [
+      ['Current Price (Rp/kg)', round2(globalPricePerKg)],
+      [],
+      ['Timestamp','Old Price','New Price'],
+      ...globalPriceHistory.map(h=>[h.ts, round2(h.oldPrice), round2(h.newPrice)])
+    ];
+    const wsPricing = XLSX.utils.aoa_to_sheet(pricingSheetRows);
+    wsPricing['!cols'] = [{wch:24},{wch:16},{wch:16}];
+
+    const photoDataRows = [];
+    items.forEach(it=>{
+      const img = itemImages[it.id];
+      if(!img) return;
+      for(let i=0;i<img.length;i+=PHOTO_CHUNK_SIZE){
+        photoDataRows.push([it.name, Math.floor(i/PHOTO_CHUNK_SIZE), img.slice(i, i+PHOTO_CHUNK_SIZE)]);
+      }
+    });
+    const wsPhotos = XLSX.utils.aoa_to_sheet([['Item','ChunkIndex','Data'], ...photoDataRows]);
+    wsPhotos['!cols'] = [{wch:24},{wch:12},{wch:50}];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsInv, 'Inventory Summary');
+    XLSX.utils.book_append_sheet(wb, wsMasuk, 'Masuk');
+    XLSX.utils.book_append_sheet(wb, wsKeluar, 'Keluar');
+    XLSX.utils.book_append_sheet(wb, wsLocations, 'Locations');
+    XLSX.utils.book_append_sheet(wb, wsVendors, 'Vendors');
+    XLSX.utils.book_append_sheet(wb, wsPricing, 'Material Pricing');
+    XLSX.utils.book_append_sheet(wb, wsPhotos, 'Photos');
+
+    const stamp = todayISO();
+    XLSX.writeFile(wb, `Stock_Monitor_Export_${stamp}.xlsx`);
+    showToast(currentLang==='en'?'Excel file exported — this file can fully restore your data on import.':'File Excel berhasil diekspor.');
+  });
+
+  function round2(n){ return Math.round(Number(n||0)*100)/100; }
+
+  // ---------- render all ----------
+  function renderAll(){
+    applyLanguage();
+    renderDashboard();
+    renderInventory();
+    renderItemAnalytics();
+    renderStockIn();
+    renderStockOut();
+    renderPricing();
+    renderLocations();
+    renderVendors();
+  }
+
+  // ---------- init ----------
+  (async function init(){
+    document.getElementById('siReceivedDate').value = todayISO();
+    document.getElementById('soDate').value = todayISO();
+    await loadData();
+    renderAll();
+  })();
+
+})();
+</script>
+</body>
+</html>
