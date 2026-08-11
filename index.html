@@ -15,11 +15,11 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-  // TODO: Replace the object below with your actual configuration from Firebase Console
+  // Configuration object with databaseURL included
 	const firebaseConfig = {
 		apiKey: "AIzaSyD6055LLk3sgKHt0hULjbfiViiMpNTSlCM",
 		authDomain: "stock-manager-90827.firebaseapp.com",
-		databaseURL: "https://console.firebase.google.com/u/2/project/stock-manager-90827/database/stock-manager-90827-default-rtdb/data/~2F",
+		databaseURL: "https://stock-manager-90827-default-rtdb.firebaseio.com",
 		projectId: "stock-manager-90827",
 		storageBucket: "stock-manager-90827.firebasestorage.app",
 		messagingSenderId: "916722888004",
@@ -1446,7 +1446,11 @@
           globalPriceHistory = val.globalPriceHistory || [];
           itemImages = val.itemImages || {};
 
-          renderAll();
+          // Avoid re-rendering if user is actively filling out a modal
+          const activeModal = document.querySelector('.modal-backdrop.active');
+          if (!activeModal) {
+            renderAll();
+          }
           if (!isInitialLoad) {
             showToast(currentLang === 'en' ? 'Synced with live changes!' : 'Tersinkronisasi dengan data terbaru!');
           }
@@ -1552,6 +1556,9 @@
 
   let saveTimer = null;
   function saveData(){
+    // Instantly update local UI view so user actions take effect immediately
+    renderAll();
+
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       storageApi.saveAllData();
@@ -2137,7 +2144,6 @@
           delete itemImages[id];
         }
         saveData();
-        renderAll();
         showToast(currentLang==='en'?'Item deleted.':'Barang dihapus.');
       });
     });
@@ -2496,9 +2502,8 @@
       }
     }
 
-    saveData();
     itemModal.classList.remove('active');
-    renderAll();
+    saveData();
     showToast(editingItemId ? (currentLang==='en'?'Item updated.':'Barang diperbarui.') : (currentLang==='en'?'Item added.':'Barang ditambahkan.'));
   });
 
@@ -2519,7 +2524,6 @@
     globalPriceHistory.push({ts: nowStamp(), oldPrice: globalPricePerKg, newPrice: newVal});
     globalPricePerKg = newVal;
     saveData();
-    renderAll();
     showToast(currentLang==='en'?'Price updated.':'Harga diperbarui.');
   });
 
@@ -2557,9 +2561,8 @@
     l.phone = document.getElementById('editLocPhone').value.trim();
     l.address = document.getElementById('editLocAddress').value.trim();
 
-    saveData();
     editLocModal.classList.remove('active');
-    renderAll();
+    saveData();
     showToast(currentLang==='en'?'Location updated.':'Lokasi diperbarui.');
   });
 
@@ -2596,7 +2599,6 @@
         items.forEach(i=>{ if(i.locationId===id) i.locationId=''; });
         locations = locations.filter(l=>l.id!==id);
         saveData();
-        renderAll();
         showToast(currentLang==='en'?'Location deleted.':'Lokasi dihapus.');
       });
     });
@@ -2624,7 +2626,6 @@
 
     nameInput.value=''; contactInput.value=''; phoneInput.value=''; addressInput.value='';
     saveData();
-    renderAll();
     showToast(currentLang==='en'?'Location added.':'Lokasi ditambahkan.');
   });
 
@@ -2665,9 +2666,8 @@
       stockIn.forEach(s=>{ if(s.vendor === oldName) s.vendor = newName; });
     }
 
-    saveData();
     editVendorModal.classList.remove('active');
-    renderAll();
+    saveData();
     showToast(currentLang==='en'?'Vendor updated.':'Pemasok diperbarui.');
   });
 
@@ -2699,7 +2699,7 @@
     body.querySelectorAll('[data-del-vendor]').forEach(b=>{
       b.addEventListener('click', ()=>{
         vendors = vendors.filter(v=>v.id!==b.getAttribute('data-del-vendor'));
-        saveData(); renderAll(); showToast(currentLang==='en'?'Vendor removed.':'Pemasok dihapus.');
+        saveData(); showToast(currentLang==='en'?'Vendor removed.':'Pemasok dihapus.');
       });
     });
   }
@@ -2727,7 +2727,7 @@
 
     addVendor(name, contactInput.value, phoneInput.value);
     nameInput.value=''; contactInput.value=''; phoneInput.value='';
-    saveData(); renderAll(); showToast(currentLang==='en'?'Vendor added.':'Pemasok ditambahkan.');
+    saveData(); showToast(currentLang==='en'?'Vendor added.':'Pemasok ditambahkan.');
   });
 
   function populateVendorSelect(selId){
@@ -2805,7 +2805,7 @@
     body.querySelectorAll('[data-del-in]').forEach(b=>{
       b.addEventListener('click', ()=>{
         stockIn = stockIn.filter(x=>x.id!==b.getAttribute('data-del-in'));
-        saveData(); renderAll(); showToast(currentLang==='en'?'Entry removed.':'Catatan dihapus.');
+        saveData(); showToast(currentLang==='en'?'Entry removed.':'Catatan dihapus.');
       });
     });
     body.querySelectorAll('[data-edit-in]').forEach(b=>{
@@ -2842,7 +2842,6 @@
       history:[{ts:nowStamp(), summary:'Created'}],
       createdAt: Date.now()
     });
-    saveData();
 
     document.getElementById('siOrderNo').value='';
     document.getElementById('siQty').value='';
@@ -2851,7 +2850,7 @@
     document.getElementById('siVendorSelect').value='';
     siSelectedItemId = '';
 
-    renderAll();
+    saveData();
     showToast(currentLang==='en'?'Stock-in entry added.':'Catatan barang masuk ditambahkan.');
   });
 
@@ -2902,9 +2901,8 @@
     x.history = x.history || [];
     if(changes.length) x.history.push({ts: nowStamp(), summary: changes.join('; ')});
 
-    saveData();
     editSiModal.classList.remove('active');
-    renderAll();
+    saveData();
     showToast(currentLang==='en'?'Stock-in entry updated.':'Catatan barang masuk diperbarui.');
   });
 
@@ -2963,7 +2961,7 @@
     body.querySelectorAll('[data-del-out]').forEach(b=>{
       b.addEventListener('click', ()=>{
         stockOut = stockOut.filter(x=>x.id!==b.getAttribute('data-del-out'));
-        saveData(); renderAll(); showToast(currentLang==='en'?'Entry removed.':'Catatan dihapus.');
+        saveData(); showToast(currentLang==='en'?'Entry removed.':'Catatan dihapus.');
       });
     });
     body.querySelectorAll('[data-edit-out]').forEach(b=>{
@@ -2993,14 +2991,13 @@
       return;
     }
     stockOut.push({id:uid(), itemId, kegunaan, date, qty, notes, history:[{ts:nowStamp(), summary:'Created'}], createdAt: Date.now()});
-    saveData();
 
     document.getElementById('soKegunaan').value='';
     document.getElementById('soQty').value='';
     document.getElementById('soNotes').value='';
     soSelectedItemId = '';
 
-    renderAll();
+    saveData();
     showToast(currentLang==='en'?'Stock-out entry added.':'Catatan barang keluar ditambahkan.');
   });
 
@@ -3052,9 +3049,8 @@
     x.history = x.history || [];
     if(changes.length) x.history.push({ts: nowStamp(), summary: changes.join('; ')});
 
-    saveData();
     editSoModal.classList.remove('active');
-    renderAll();
+    saveData();
     showToast(currentLang==='en'?'Stock-out entry updated.':'Catatan barang keluar diperbarui.');
   });
 
@@ -3068,7 +3064,6 @@
     siSelectedItemId=''; soSelectedItemId=''; analyticsSelectedItemId='';
     activityMonthInit = false; topItemsMonthInit = false; analyticsMonthInit = false; siLogMonthInit = false; soLogMonthInit = false;
     saveData();
-    renderAll();
     showToast(currentLang==='en'?'All data cleared.':'Seluruh data berhasil dihapus.');
   });
 
@@ -3133,7 +3128,6 @@
         siSelectedItemId=''; soSelectedItemId=''; analyticsSelectedItemId='';
         activityMonthInit = false; topItemsMonthInit = false; analyticsMonthInit = false; siLogMonthInit = false; soLogMonthInit = false;
         saveData();
-        renderAll();
         showToast(currentLang==='en'?'Zip Data and Images imported successfully.':'Data ZIP dan gambar berhasil diimpor.');
       } catch (err) {
         console.error(err);
@@ -3172,7 +3166,6 @@
         siSelectedItemId=''; soSelectedItemId=''; analyticsSelectedItemId='';
         activityMonthInit = false; topItemsMonthInit = false; analyticsMonthInit = false; siLogMonthInit = false; soLogMonthInit = false;
         saveData();
-        renderAll();
         showToast(currentLang==='en'?'Data imported successfully.':'Data berhasil diimpor.');
       }catch(err){
         console.error(err);
