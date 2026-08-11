@@ -102,7 +102,6 @@
     transition:background .15s ease, color .15s ease;
   }
   
-  /* CLIENT-SIDE SECURITY UPDATE: Hide UI by default until auth completes */
   .app{
     display: none;
     width: 95%;
@@ -912,7 +911,6 @@
       <button class="btn-bottom-footer" id="logoutBtn">🔒 <span id="logoutText">Logout</span></button>
       <button class="btn-bottom-footer" id="langToggle">🌐 <span id="langText">Bahasa Indonesia</span></button>
       <button class="btn-bottom-footer" id="themeToggle"><span id="themeIcon">☀️</span> <span id="themeText">Light Mode</span></button>
-      <button class="btn-bottom-footer" id="resetBtn" data-i18n="btnResetData">Reset Data</button>
     </div>
     <span class="made-by-tag">Made by Alvin</span>
   </div>
@@ -1219,7 +1217,6 @@
       thLocPhone: "Phone Number",
       thLocItems: "Items Stored",
       footerNote: "Data is stored privately in Firebase Realtime Database and stays synced live across all devices. \"Export Save Data\" produces a ZIP containing complete JSON data and raw uncompressed images. \"Import Data\" can restore from either this ZIP or an Excel file.",
-      btnResetData: "Reset Data",
       modalAddItemTitle: "Add new item",
       modalEditItemTitle: "Edit item",
       lblPhotoOpt: "Photo (optional)",
@@ -1380,7 +1377,6 @@
       thLocPhone: "Nomor Telepon",
       thLocItems: "Jumlah Barang Stored",
       footerNote: "Data disimpan secara pribadi di Firebase Realtime Database dan tetap tersinkronisasi. \"Ekspor File Simpanan\" menghasilkan file ZIP berisi data JSON lengkap dan gambar. \"Impor Data\" dapat memulihkan dari ZIP ini atau file Excel.",
-      btnResetData: "Reset Data",
       modalAddItemTitle: "Tambah Barang Baru",
       modalEditItemTitle: "Edit Barang",
       lblPhotoOpt: "Foto (opsional)",
@@ -1487,7 +1483,6 @@
       });
     },
 
-    // CLIENT-SIDE SECURITY UPDATE: Cut off live DB listener when unauthenticated
     unsubscribeFromChanges() {
       db.ref('stock-monitor-data').off();
     },
@@ -1611,7 +1606,7 @@
     try{ localStorage.setItem('stock-monitor-theme', isLight ? 'light' : 'dark'); }catch(e){}
   });
 
-  // ---------- AUTHENTICATION & LOGIN LOGIC (UPDATED CLIENT SECURITY) ----------
+  // ---------- AUTHENTICATION & LOGIN LOGIC ----------
   let isSubscribed = false;
 
   auth.onAuthStateChanged((user) => {
@@ -1621,7 +1616,7 @@
     if (user) {
       // User is logged in
       authOverlay.style.display = 'none';
-      appContainer.style.display = 'block'; // Unhide UI
+      appContainer.style.display = 'block'; 
       
       if (!isSubscribed) {
         storageApi.subscribeToChanges(); // Start loading data
@@ -1630,7 +1625,7 @@
     } else {
       // User is logged out
       authOverlay.style.display = 'flex';
-      appContainer.style.display = 'none'; // Completely hide UI from DOM inspection
+      appContainer.style.display = 'none'; 
 
       // Disconnect live database listener
       if (isSubscribed) {
@@ -3163,19 +3158,6 @@
     editSoModal.classList.remove('active');
     saveData();
     showToast(currentLang==='en'?'Stock-out entry updated.':'Catatan barang keluar diperbarui.');
-  });
-
-  // ---------- reset ----------
-  document.getElementById('resetBtn').addEventListener('click', async ()=>{
-    if(!confirm(currentLang==='en'?'This clears all items, log entries, vendors, locations, photos and pricing history. This cannot be undone. Continue?':'Ini akan menghapus seluruh barang, catatan, pemasok, lokasi, foto, dan riwayat harga. Tindakan ini tidak dapat dibatalkan. Lanjutkan?')) return;
-    
-    itemImages = {};
-    items = []; stockIn = []; stockOut = []; vendors = []; locations = [];
-    globalPricePerKg = 0; globalPriceHistory = [];
-    siSelectedItemId=''; soSelectedItemId=''; analyticsSelectedItemId='';
-    activityMonthInit = false; topItemsMonthInit = false; analyticsMonthInit = false; siLogMonthInit = false; soLogMonthInit = false;
-    saveData();
-    showToast(currentLang==='en'?'All data cleared.':'Seluruh data berhasil dihapus.');
   });
 
   // ---------- export ZIP Backup ----------
