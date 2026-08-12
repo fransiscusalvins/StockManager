@@ -1447,6 +1447,18 @@
     document.getElementById('logoutText').textContent = currentLang === 'en' ? 'Logout' : 'Keluar';
   }
 
+  // ---------- BROWSER & FIREBASE DISCONNECT DETECTORS ----------
+  window.addEventListener('offline', () => {
+    alert(currentLang === 'en' 
+      ? '⚠️ Internet connection cut off! Any edits made now cannot be uploaded to the server.' 
+      : '⚠️ Koneksi internet terputus! Perubahan yang dilakukan tidak dapat diunggah ke server.');
+    showToast(currentLang === 'en' ? '⚠️ You are offline.' : '⚠️ Anda sedang offline.', true);
+  });
+
+  window.addEventListener('online', () => {
+    showToast(currentLang === 'en' ? '🟢 Internet connection re-established.' : '🟢 Koneksi internet terhubung kembali.');
+  });
+
   // ---------- FIREBASE REALTIME STORAGE WRAPPER ----------
   let isInitialLoad = true;
   let isFirebaseReady = false;
@@ -1454,6 +1466,16 @@
   const storageApi = {
     // Listen for live updates from Firebase
     subscribeToChanges() {
+      // 1. Listen for connection status changes
+      db.ref('.info/connected').on('value', (snap) => {
+        if (snap.val() === false) {
+          showToast(currentLang === 'en' ? '⚠️ Disconnected from server database.' : '⚠️ Terputus dari database server.', true);
+        } else if (!isInitialLoad) {
+          showToast(currentLang === 'en' ? '🟢 Synced with server database.' : '🟢 Tersinkronisasi dengan database.');
+        }
+      });
+
+      // 2. Listen for data changes
       db.ref('stock-monitor-data').on('value', (snapshot) => {
         const val = snapshot.val() || {};
         
@@ -1484,11 +1506,23 @@
     },
 
     unsubscribeFromChanges() {
+      db.ref('.info/connected').off();
       db.ref('stock-monitor-data').off();
     },
 
     async saveAllData() {
       if (!isFirebaseReady) return;
+
+      // Internet connection check prior to save
+      if (!navigator.onLine) {
+        const msg = currentLang === 'en' 
+          ? '⚠️ Data syncing failed! You are offline. Changes could not be uploaded.' 
+          : '⚠️ Gagal menyinkronkan data! Anda sedang offline. Perubahan tidak dapat diunggah.';
+        alert(msg);
+        showToast(msg, true);
+        return;
+      }
+
       try {
         await db.ref('stock-monitor-data').set({
           items,
@@ -1502,7 +1536,11 @@
         });
       } catch (e) {
         console.error('Firebase save error:', e);
-        showToast('Sync error — verify your internet or database permissions.', true);
+        const errMsg = currentLang === 'en' 
+          ? '❌ Sync failed! Internet connection issues prevented uploading changes to the server.' 
+          : '❌ Gagal menyinkronkan! Gangguan koneksi internet menghalangi pengunggahan perubahan ke server.';
+        alert(errMsg);
+        showToast(errMsg, true);
       }
     }
   };
