@@ -9,6 +9,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <!-- Firebase SDKs (v8 for direct script tag compatibility) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -105,8 +108,7 @@
   .app{
     display: none;
     width: 95%;
-    max-width: 50%;
-    min-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 20px 20px 60px;
   }
@@ -125,6 +127,19 @@
   .brand h1{font-size:19px;margin:0;letter-spacing:0.02em;}
   .brand .sub{font-family:var(--mono);font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;}
   .headline-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+
+  .user-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--bg-alt);
+    color: var(--amber);
+    padding: 6px 12px;
+    border: 1px solid var(--border-c);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
 
   button{
     font-family:var(--sans);cursor:pointer;border:none;
@@ -173,35 +188,74 @@
   .stat.info{border-top-color:#3060a8;}
   .stat.info .value{color:#3060a8;}
 
-  section.panel{background:var(--bg-panel);border:1px solid var(--border-c);margin-bottom:20px;}
+  section.panel{background:var(--bg-panel);border:1px solid var(--border-c);margin-bottom:20px;overflow:hidden;}
   section.panel > .panel-head{
     display:flex;justify-content:space-between;align-items:center;
     padding:12px 16px;border-bottom:1px solid var(--border-c);background:var(--bg-alt);
     flex-wrap:wrap;gap:8px;
   }
   section.panel > .panel-head h2{font-size:13px;margin:0;text-transform:uppercase;letter-spacing:0.05em;font-family:var(--mono);}
-  section.panel > .panel-body{padding:14px 16px;}
+  section.panel > .panel-body{
+    padding: 0;
+    max-height: 520px;
+    overflow-y: auto;
+    overflow-x: auto;
+    position: relative;
+    border-radius: 0 0 2px 2px;
+  }
   .panel-head-actions{display:flex;align-items:center;gap:8px;}
   .panel-head-actions label{font-family:var(--mono);font-size:10.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.04em;}
   .panel-head-actions input[type=month]{padding:5px 8px;border:1px solid var(--border-c);font-size:12px;background:var(--bg-panel);color:var(--text-c);}
 
-  table{width:100%;border-collapse:collapse;font-size:13px;}
+  /* TABLE & STICKY HEADER STYLES */
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;}
   thead th{
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--bg-alt);
     text-align:left;font-family:var(--mono);font-size:10.5px;text-transform:uppercase;
-    letter-spacing:0.04em;color:var(--text-dim);padding:8px 10px;border-bottom:1px solid var(--border-c);
+    letter-spacing:0.04em;color:var(--text-dim);
+    padding:14px 10px;
+    border-bottom:2px solid var(--border-c);
+    border-right:1px solid var(--border-c);
     white-space:nowrap;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  }
+  
+  thead th::before {
+    content: "";
+    position: absolute;
+    top: -20px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-alt);
+    z-index: -1;
+  }
+
+  thead th:last-child {
+    border-right: none;
   }
   thead th.sortable{cursor:pointer;user-select:none;}
   thead th.sortable:hover{color:var(--amber);}
-  tbody td{padding:8px 10px;border-bottom:1px solid var(--bg-alt);vertical-align:middle;color:var(--text-c);}
+  tbody td{
+    padding:8px 10px;
+    border-bottom:1px solid var(--bg-alt);
+    border-right:1px solid var(--border-c);
+    vertical-align:middle;
+    color:var(--text-c);
+  }
+  tbody td:last-child {
+    border-right: none;
+  }
   tbody tr:hover{background:var(--bg-alt);}
   td.num, th.num{text-align:right;font-family:var(--mono);}
   .empty-row td{color:var(--text-dim);font-style:italic;text-align:center;padding:22px;}
   .note-preview{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle;color:var(--text-dim);font-style:italic;font-size:12px;}
 
   #view-inventory .panel-body {
-    overflow-x: visible !important;
-    padding: 8px 10px;
+    padding: 0;
   }
   #view-inventory table {
     table-layout: auto;
@@ -209,13 +263,13 @@
     font-size: 11px;
   }
   #view-inventory thead th {
-    padding: 6px 3px;
+    padding: 10px 6px;
     font-size: 9px;
     white-space: nowrap;
     letter-spacing: 0.02em;
   }
   #view-inventory tbody td {
-    padding: 4px 3px;
+    padding: 6px 6px;
     white-space: nowrap;
   }
   #view-inventory .inline-loc-select {
@@ -341,6 +395,7 @@
   .modal-backdrop.active{display:flex;}
   .modal{background:var(--bg-panel);width:100%;max-width:480px;border-top:4px solid var(--amber);margin:auto;}
   .modal.modal-wide{max-width:760px;}
+  .modal.modal-full{max-width:1000px;}
   .modal .modal-head{padding:14px 18px;border-bottom:1px solid var(--border-c);display:flex;justify-content:space-between;align-items:center;}
   .modal .modal-head h3{margin:0;font-size:14px;text-transform:uppercase;font-family:var(--mono);color:var(--text-c);}
   .modal .modal-body{padding:18px;display:flex;flex-direction:column;gap:12px;max-height:70vh;overflow-y:auto;}
@@ -438,6 +493,79 @@
     border-color: var(--amber);
   }
 
+  /* FULL-SCALED HORIZONTAL PRINT CONTAINER FOR LANDSCAPE PDF (NO CUT-OFF) */
+  .pdf-print-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: var(--sans);
+    padding: 10px 12px 15px 12px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    display: block !important;
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+  }
+  .pdf-print-container h2 {
+    font-size: 15px;
+    margin: 0 0 4px 0 !important;
+    padding-top: 0 !important;
+    text-transform: uppercase;
+    font-family: var(--mono);
+    color: #000000 !important;
+  }
+  .pdf-print-container .print-meta {
+    font-family: var(--mono);
+    font-size: 8.5px;
+    color: #444444 !important;
+    margin-bottom: 10px;
+    border-bottom: 1.5px solid #000000;
+    padding-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .pdf-print-container table {
+    width: 100% !important;
+    table-layout: auto !important;
+    border-collapse: collapse !important;
+    font-size: 8.5px !important;
+    border-spacing: 0;
+    margin-top: 0 !important;
+  }
+  .pdf-print-container thead {
+    display: table-header-group !important;
+  }
+  .pdf-print-container tr {
+    page-break-inside: avoid !important;
+  }
+  .pdf-print-container th, .pdf-print-container td {
+    border: 1px solid #555555 !important;
+    padding: 4px 5px !important;
+    color: #000000 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    position: static !important;
+    word-break: break-word !important;
+  }
+  .pdf-print-container th::before {
+    display: none !important;
+  }
+  .pdf-print-container th {
+    background-color: #ededed !important;
+    font-family: var(--mono);
+    font-size: 8px !important;
+    text-transform: uppercase;
+  }
+  .pdf-print-container .num { text-align: right; }
+  .pdf-print-container .print-badge {
+    font-family: var(--mono);
+    font-size: 7.5px;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
   @media (max-width:1250px){
     .app { min-width: 100%; max-width: 100%; }
   }
@@ -479,6 +607,7 @@
       </div>
     </div>
     <div class="headline-actions">
+      <div class="user-badge" id="userHeaderBadge">👤 <span id="userEmailDisplay">Loading...</span></div>
       <input type="file" id="importFile" accept=".xlsx,.xls,.zip" style="display:none;">
       <button class="btn-ghost btn-toolbar" id="importBtn" data-i18n="importData">Import Data</button>
       <button class="btn-amber btn-toolbar" id="exportBtn" data-i18n="exportExcel">Export to Excel</button>
@@ -513,7 +642,7 @@
 
     <section class="panel">
       <div class="panel-head"><h2 data-i18n="dashTrends">Trends</h2></div>
-      <div class="panel-body">
+      <div class="panel-body" style="padding:14px 16px; max-height:none; overflow:visible;">
         <div class="chart-row">
           <div>
             <div class="hint" style="font-family:var(--mono);font-size:10.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;" data-i18n="chartInOutTitle">Stock In vs Stock Out — last 6 months</div>
@@ -549,6 +678,7 @@
         <div class="panel-head-actions">
           <label data-i18n="lblFrom">From</label><input type="month" id="activityMonthFrom">
           <label data-i18n="lblTo">To</label><input type="month" id="activityMonthTo">
+          <button class="btn-ghost btn-sm" id="printActivityPdfBtn" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; margin-left: 6px;">📄 <span data-i18n="btnPrintPdf">Print PDF</span></button>
         </div>
       </div>
       <div class="panel-body">
@@ -582,10 +712,11 @@
       </select>
 
       <div class="spacer"></div>
+      <button class="btn-ghost" id="printPdfBtn" style="display: inline-flex; align-items: center; gap: 6px;">📄 <span data-i18n="btnPrintPdf">Print PDF</span></button>
       <button class="btn-primary" id="addItemBtn" data-i18n="btnAddItem">+ Add Item</button>
     </div>
     <section class="panel">
-      <div class="panel-body" style="overflow-x:auto;">
+      <div class="panel-body">
         <table>
           <thead>
             <tr>
@@ -634,7 +765,7 @@
         <div class="panel-head">
           <h2 id="analyticsChartTitle">Monthly Usage & Order Flow</h2>
         </div>
-        <div class="panel-body">
+        <div class="panel-body" style="padding:14px 16px; max-height:none; overflow:visible;">
           <div id="analyticsChart"></div>
         </div>
       </section>
@@ -643,7 +774,7 @@
         <div class="panel-head">
           <h2>Transactions Log (Selected Month Range)</h2>
         </div>
-        <div class="panel-body" style="overflow-x:auto;">
+        <div class="panel-body">
           <table>
             <thead>
               <tr>
@@ -669,7 +800,7 @@
   <div class="view" id="view-stockin">
     <section class="panel">
       <div class="panel-head"><h2 data-i18n="siPanelTitle">Log stock received</h2></div>
-      <div class="panel-body">
+      <div class="panel-body" style="padding:14px 16px; max-height:none; overflow:visible;">
         <div class="form-grid">
           <div class="field span3">
             <label data-i18n="lblItem">Item (Select existing inventory item)</label>
@@ -712,7 +843,7 @@
           <label data-i18n="lblTo">To</label><input type="month" id="siLogMonthTo">
         </div>
       </div>
-      <div class="panel-body" style="overflow-x:auto;">
+      <div class="panel-body">
         <table>
           <thead>
             <tr>
@@ -731,7 +862,7 @@
   <div class="view" id="view-stockout">
     <section class="panel">
       <div class="panel-head"><h2 data-i18n="soPanelTitle">Log stock issued / used</h2></div>
-      <div class="panel-body">
+      <div class="panel-body" style="padding:14px 16px; max-height:none; overflow:visible;">
         <div class="form-grid">
           <div class="field span3">
             <label data-i18n="lblItem">Item</label>
@@ -771,7 +902,7 @@
           <label data-i18n="lblTo">To</label><input type="month" id="soLogMonthTo">
         </div>
       </div>
-      <div class="panel-body" style="overflow-x:auto;">
+      <div class="panel-body">
         <table>
           <thead>
             <tr>
@@ -789,7 +920,7 @@
   <div class="view" id="view-pricing">
     <section class="panel">
       <div class="panel-head"><h2 data-i18n="pricingTitle">Material pricing</h2></div>
-      <div class="panel-body">
+      <div class="panel-body" style="padding:14px 16px; max-height:none; overflow:visible;">
         <p class="hint" style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin:0 0 14px;" data-i18n="pricingDesc">
           Since every item is the same raw material, one price applies to all of them. Costs and inventory value everywhere else recalculate automatically whenever you update it here.
         </p>
@@ -807,7 +938,7 @@
       <div class="panel-head"><h2 data-i18n="priceHistoryTitle">Price change history</h2></div>
       <div class="panel-body">
         <table>
-          <thead><tr><th data-i18n="thDateTime">Date / Time</th><th class="num" data-i18n="thOldPrice">Old Price (Rp/kg)</th><th class="num" data-i18n="thNewPrice">New Price (Rp/kg)</th></tr></thead>
+          <thead><tr><th data-i18n="thDateTime">Date / Time</th><th class="num" data-i18n="thOldPrice">Old Price (Rp/kg)</th><th class="num" data-i18n="thNewPrice">New Price (Rp/kg)</th><th data-i18n="thUpdatedBy">Updated By</th></tr></thead>
           <tbody id="priceHistoryBody"></tbody>
         </table>
       </div>
@@ -818,7 +949,7 @@
   <div class="view" id="view-locations">
     <section class="panel">
       <div class="panel-head"><h2 data-i18n="addLocationTitle">Add a storage location</h2></div>
-      <div class="panel-body">
+      <div class="panel-body" style="padding:14px 16px; max-height:none; overflow:visible;">
         <div class="form-grid">
           <div class="field">
             <label data-i18n="lblLocName">Location Name</label>
@@ -843,7 +974,7 @@
     </section>
     <section class="panel">
       <div class="panel-head"><h2 data-i18n="locationListTitle">Storage Locations</h2></div>
-      <div class="panel-body" style="overflow-x:auto;">
+      <div class="panel-body">
         <table>
           <thead>
             <tr>
@@ -865,7 +996,7 @@
   <div class="view" id="view-vendors">
     <section class="panel">
       <div class="panel-head"><h2 data-i18n="addVendorTitle">Add a vendor</h2></div>
-      <div class="panel-body">
+      <div class="panel-body" style="padding:14px 16px; max-height:none; overflow:visible;">
         <div class="form-grid">
           <div class="field">
             <label data-i18n="lblVendorName">Vendor / Supplier Name</label>
@@ -886,7 +1017,7 @@
     </section>
     <section class="panel">
       <div class="panel-head"><h2 data-i18n="vendorListTitle">Vendor list</h2></div>
-      <div class="panel-body" style="overflow-x:auto;">
+      <div class="panel-body">
         <table>
           <thead>
             <tr>
@@ -991,6 +1122,24 @@
     </div>
     <div class="modal-foot">
       <button class="btn-ghost" id="cancelItemHistoryModal" data-i18n="btnCancel">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- PDF PREVIEW & DOWNLOAD POPUP MODAL -->
+<div class="modal-backdrop" id="pdfPreviewModal">
+  <div class="modal modal-full">
+    <div class="modal-head">
+      <h3 id="pdfPreviewTitle">PDF Report Preview</h3>
+      <button class="close-x" id="closePdfPreviewModal">&times;</button>
+    </div>
+    <div class="modal-body" style="max-height: 75vh; overflow-y: auto; overflow-x: auto; background: #525659; padding: 15px;">
+      <!-- Real-time dynamic paper preview container -->
+      <div id="pdfModalPreviewBox" style="background: #ffffff; margin: 0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.5); width: 100%; max-width: none;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="cancelPdfPreviewModal" data-i18n="btnCancel">Close</button>
+      <button class="btn-amber" id="confirmDownloadPdfBtn">📥 Download PDF</button>
     </div>
   </div>
 </div>
@@ -1151,6 +1300,7 @@
       thDateTime: "Date / Time",
       thOldPrice: "Old Price (Rp/kg)",
       thNewPrice: "New Price (Rp/kg)",
+      thUpdatedBy: "Updated By",
       thSiEntries: "Stock-in Entries",
       phInvSearch: "Search item code, name or purpose…",
       phTagSearch: "Filter by tag...",
@@ -1165,6 +1315,7 @@
       optOutOfStock: "Out of Stock",
       optOverstocked: "Overstocked",
       btnAddItem: "+ Add Item",
+      btnPrintPdf: "Print PDF",
       siPanelTitle: "Log stock received",
       lblItem: "Item (Select existing inventory item)",
       phSiSearch: "Search existing item by code, name or purpose…",
@@ -1200,7 +1351,7 @@
       vendorListTitle: "Vendor list",
       modalEditVendorTitle: "Edit Vendor / Supplier",
       thVendorContact: "Contact Person",
-      thVendorPhone: "Phone Number",
+      thVendorPhone: "Number",
       addLocationTitle: "Add a storage location",
       lblLocName: "Location Name",
       phLocName: "e.g. Warehouse A, Rack 2",
@@ -1313,6 +1464,7 @@
       thDateTime: "Tanggal / Waktu",
       thOldPrice: "Harga Lama (Rp/kg)",
       thNewPrice: "Harga Baru (Rp/kg)",
+      thUpdatedBy: "Diperbarui Oleh",
       thSiEntries: "Catatan Barang Masuk",
       phInvSearch: "Cari kode, nama barang…",
       phTagSearch: "Filter tag...",
@@ -1327,6 +1479,7 @@
       optOutOfStock: "Stok Habis",
       optOverstocked: "Stok Berlebih",
       btnAddItem: "+ Tambah Barang",
+      btnPrintPdf: "Cetak PDF",
       siPanelTitle: "Catat Barang Masuk",
       lblItem: "Barang (Pilih barang inventaris)",
       phSiSearch: "Cari barang berdasarkan kode, nama atau kegunaan…",
@@ -1430,6 +1583,10 @@
 
   let currentLang = 'en';
 
+  function getCurrentUserEmail() {
+    return (auth.currentUser && auth.currentUser.email) ? auth.currentUser.email : 'System';
+  }
+
   function t(key){
     return (translations[currentLang] && translations[currentLang][key]) || translations.en[key] || key;
   }
@@ -1468,9 +1625,7 @@
   let isFirebaseReady = false;
 
   const storageApi = {
-    // Listen for live updates from Firebase
     subscribeToChanges() {
-      // 1. Listen for connection status changes
       db.ref('.info/connected').on('value', (snap) => {
         if (snap.val() === false) {
           showToast(currentLang === 'en' ? '⚠️ Disconnected from server database.' : '⚠️ Terputus dari database server.', true);
@@ -1479,7 +1634,6 @@
         }
       });
 
-      // 2. Listen for data changes
       db.ref('stock-monitor-data').on('value', (snapshot) => {
         const val = snapshot.val() || {};
         
@@ -1517,7 +1671,6 @@
     async saveAllData() {
       if (!isFirebaseReady) return;
 
-      // Internet connection check prior to save
       if (!navigator.onLine) {
         const msg = currentLang === 'en' 
           ? '⚠️ Data syncing failed! You are offline. Changes could not be uploaded.' 
@@ -1577,8 +1730,6 @@
   let itemPhotoTemp = '';
   let itemPhotoChanged = false;
 
-  const PHOTO_CHUNK_SIZE = 28000;
-
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
   const fmtInt = n => Number(n||0).toLocaleString('en-US');
   const fmtRp = n => 'Rp ' + Number(n||0).toLocaleString('en-US', {maximumFractionDigits:0});
@@ -1614,7 +1765,6 @@
     }).filter(Boolean);
   }
 
-  // Load Preferences
   function initDataStore(){
     try{
       const l = localStorage.getItem('stock-monitor-lang');
@@ -1666,22 +1816,22 @@
   auth.onAuthStateChanged((user) => {
     const appContainer = document.querySelector('.app');
     const authOverlay = document.getElementById('auth-overlay');
+    const userEmailDisplay = document.getElementById('userEmailDisplay');
 
     if (user) {
-      // User is logged in
       authOverlay.style.display = 'none';
       appContainer.style.display = 'block'; 
+      userEmailDisplay.textContent = user.email || 'Logged in';
       
       if (!isSubscribed) {
-        storageApi.subscribeToChanges(); // Start loading data
+        storageApi.subscribeToChanges();
         isSubscribed = true;
       }
     } else {
-      // User is logged out
       authOverlay.style.display = 'flex';
       appContainer.style.display = 'none'; 
+      userEmailDisplay.textContent = 'Not logged in';
 
-      // Disconnect live database listener
       if (isSubscribed) {
         storageApi.unsubscribeFromChanges();
       }
@@ -1689,7 +1839,6 @@
       isSubscribed = false;
       isFirebaseReady = false;
       
-      // Wipe all local memory
       items = []; 
       stockIn = []; 
       stockOut = []; 
@@ -1699,7 +1848,7 @@
       globalPricePerKg = 0;
       globalPriceHistory = [];
 
-      renderAll(); // clear UI views
+      renderAll();
     }
   });
 
@@ -1732,12 +1881,10 @@
   document.getElementById('logoutBtn').addEventListener('click', () => {
      auth.signOut().then(() => {
         showToast(currentLang === 'en' ? 'Logged out successfully.' : 'Berhasil logout.');
-        // clear inputs for next login
         document.getElementById('auth-email').value = '';
         document.getElementById('auth-password').value = '';
      });
   });
-
 
   // ---------- computation ----------
   function itemStats(item){
@@ -2063,19 +2210,13 @@
 
   let activityMonthInit = false, topItemsMonthInit = false;
 
-  function renderRecentActivity(){
+  function getFilteredRecentActivity() {
     const fromInput = document.getElementById('activityMonthFrom');
     const toInput = document.getElementById('activityMonthTo');
-    const allDates = [...stockIn.map(x=>x.receivedDate), ...stockOut.map(x=>x.date)].filter(Boolean).sort();
-    if(!activityMonthInit){
-      fromInput.value = allDates.length ? monthOf(allDates[0]) : todayISO().slice(0,7);
-      toInput.value = allDates.length ? monthOf(allDates[allDates.length-1]) : todayISO().slice(0,7);
-      activityMonthInit = true;
-    }
     const fromM = fromInput.value || '0000-00';
     const toM = toInput.value || '9999-99';
 
-    const activity = [
+    return [
       ...stockIn.map(x=>({date:x.receivedDate, type:'Stock In', itemId:x.itemId, vendor:x.vendor||'—', qty:x.qty, createdAt: x.createdAt||0})),
       ...stockOut.map(x=>({date:x.date, type:'Stock Out', itemId:x.itemId, vendor:'—', qty:x.qty, createdAt: x.createdAt||0}))
     ].filter(a=>{
@@ -2085,6 +2226,19 @@
       if((b.createdAt||0) !== (a.createdAt||0)) return (b.createdAt||0) - (a.createdAt||0);
       return (b.date||'').localeCompare(a.date||'');
     });
+  }
+
+  function renderRecentActivity(){
+    const fromInput = document.getElementById('activityMonthFrom');
+    const toInput = document.getElementById('activityMonthTo');
+    const allDates = [...stockIn.map(x=>x.receivedDate), ...stockOut.map(x=>x.date)].filter(Boolean).sort();
+    if(!activityMonthInit){
+      fromInput.value = allDates.length ? monthOf(allDates[0]) : todayISO().slice(0,7);
+      toInput.value = allDates.length ? monthOf(allDates[allDates.length-1]) : todayISO().slice(0,7);
+      activityMonthInit = true;
+    }
+
+    const activity = getFilteredRecentActivity();
 
     const body = document.getElementById('recentBody');
     body.innerHTML = activity.length ? activity.map(a=>{
@@ -2103,6 +2257,253 @@
   }
   document.getElementById('activityMonthFrom').addEventListener('change', renderRecentActivity);
   document.getElementById('activityMonthTo').addEventListener('change', renderRecentActivity);
+
+  // ---------- PDF POPUP PREVIEW & DOWNLOAD CONTROLLER ----------
+  // NOTE: earlier versions generated the PDF by screenshotting the on-screen preview DOM with
+  // html2canvas (via html2pdf.js). That approach kept producing blank pages no matter how the
+  // captured element was hidden/positioned (opacity:0, visibility:hidden, off-screen, even fully
+  // visible) — screenshot-based capture is fragile with CSS variables, cloned nodes and modals.
+  // The preview modal is now purely visual. The actual PDF is built directly from the underlying
+  // data with jsPDF + AutoTable — real vector text, no screenshot, no DOM-capture edge cases.
+  let currentPdfFilename = "Document.pdf";
+  let pendingPdfExport = null; // { title, metaLines, columns, rows, columnStyles, filename }
+  const pdfPreviewModal = document.getElementById('pdfPreviewModal');
+  const pdfModalPreviewBox = document.getElementById('pdfModalPreviewBox');
+
+  function openPdfPreviewModal(htmlContent, titleText, defaultFilename) {
+    currentPdfFilename = defaultFilename;
+    document.getElementById('pdfPreviewTitle').textContent = titleText;
+
+    // Inject rendered printable DOM directly inside the modal preview container (visual only)
+    pdfModalPreviewBox.innerHTML = htmlContent;
+    pdfPreviewModal.classList.add('active');
+  }
+
+  document.getElementById('closePdfPreviewModal').addEventListener('click', () => pdfPreviewModal.classList.remove('active'));
+  document.getElementById('cancelPdfPreviewModal').addEventListener('click', () => pdfPreviewModal.classList.remove('active'));
+
+  function exportTableToPdf({ title, metaLines, columns, rows, columnStyles, filename }) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.text(title, 10, 12);
+
+    doc.setFont('courier', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(90);
+    doc.text(metaLines.join('     |     '), 10, 18);
+    doc.setTextColor(0);
+
+    doc.autoTable({
+      startY: 22,
+      head: [columns],
+      body: rows,
+      theme: 'grid',
+      styles: { font: 'helvetica', fontSize: 8, cellPadding: 1.6, textColor: 20, lineColor: 130, lineWidth: 0.15, overflow: 'linebreak' },
+      headStyles: { fillColor: [237, 237, 237], textColor: 20, fontStyle: 'bold', fontSize: 7.5 },
+      columnStyles: columnStyles || {},
+      margin: { left: 8, right: 8, top: 22 }
+    });
+
+    doc.save(filename);
+  }
+
+  document.getElementById('confirmDownloadPdfBtn').addEventListener('click', () => {
+    if (!pendingPdfExport) return;
+    showToast(currentLang === 'en' ? 'Generating PDF download...' : 'Mengunduh PDF...');
+    try {
+      exportTableToPdf(pendingPdfExport);
+      showToast(currentLang === 'en' ? 'PDF downloaded!' : 'PDF berhasil diunduh!');
+    } catch (err) {
+      console.error('PDF Export Error:', err);
+      showToast(currentLang === 'en' ? 'Failed to generate PDF.' : 'Gagal membuat PDF.', true);
+    }
+  });
+
+  // ---------- PREVIEW RECENT ACTIVITY PDF (HORIZONTAL / LANDSCAPE SCALED) ----------
+  document.getElementById('printActivityPdfBtn').addEventListener('click', () => {
+    const activityData = getFilteredRecentActivity();
+    if (!activityData.length) {
+      showToast(currentLang==='en'?'No activity data available to print!':'Tidak ada data aktivitas untuk dicetak!', true);
+      return;
+    }
+
+    const fromM = document.getElementById('activityMonthFrom').value || 'All';
+    const toM = document.getElementById('activityMonthTo').value || 'All';
+
+    const rowsHtml = activityData.map(a => {
+      const it = items.find(i => i.id === a.itemId);
+      const actTime = formatDateTime(a.createdAt);
+      return `<tr>
+        <td style="white-space:nowrap; width:135px;">${actTime}</td>
+        <td style="white-space:nowrap; width:80px;">${a.date || '—'}</td>
+        <td style="text-align:center; width:55px;"><span class="print-badge">[ ${a.type==='Stock In' ? 'IN' : 'OUT'} ]</span></td>
+        <td style="width:100px;"><strong>${escapeHtml(it ? it.code || '—' : '—')}</strong></td>
+        <td>${escapeHtml(it ? it.name : 'Unknown Item')}</td>
+        <td>${escapeHtml(a.vendor)}</td>
+        <td class="num" style="width:65px;"><strong>${fmtInt(a.qty)}</strong></td>
+      </tr>`;
+    }).join('');
+
+    const templateHtml = `
+      <div class="pdf-print-container">
+        <h2>Recent Activity Report — Gudang BPro</h2>
+        <div class="print-meta">
+          <span>Period: <strong>${fromM} ~ ${toM}</strong></span>
+          <span>Generated: <strong>${nowStamp()}</strong></span>
+          <span>Printed by: <strong>${getCurrentUserEmail()}</strong></span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:135px;">Activity Timestamp</th>
+              <th style="width:80px;">Tx Date</th>
+              <th style="width:55px; text-align:center;">Type</th>
+              <th style="width:100px;">Code</th>
+              <th>Item Name</th>
+              <th>Vendor / Kegunaan</th>
+              <th class="num" style="width:65px;">Qty</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </div>
+    `;
+
+    const filename = `Recent_Activity_Report_${fromM}_to_${toM}.pdf`;
+    pendingPdfExport = {
+      title: 'Recent Activity Report — Gudang BPro',
+      metaLines: [`Period: ${fromM} ~ ${toM}`, `Generated: ${nowStamp()}`, `Printed by: ${getCurrentUserEmail()}`],
+      columns: ['Activity Timestamp', 'Tx Date', 'Type', 'Code', 'Item Name', 'Vendor / Kegunaan', 'Qty'],
+      columnStyles: {
+        0: { cellWidth: 34 },
+        1: { cellWidth: 20 },
+        2: { cellWidth: 14, halign: 'center' },
+        3: { cellWidth: 22 },
+        6: { cellWidth: 16, halign: 'right' }
+      },
+      rows: activityData.map(a => {
+        const it = items.find(i => i.id === a.itemId);
+        return [
+          formatDateTime(a.createdAt),
+          a.date || '—',
+          a.type === 'Stock In' ? 'IN' : 'OUT',
+          it ? (it.code || '—') : '—',
+          it ? it.name : 'Unknown Item',
+          a.vendor || '—',
+          fmtInt(a.qty)
+        ];
+      }),
+      filename
+    };
+
+    openPdfPreviewModal(templateHtml, "Preview Recent Activity PDF (Horizontal)", filename);
+  });
+
+  // ---------- PREVIEW INVENTORY PDF (HORIZONTAL / LANDSCAPE SCALED & SCALED PERFECTLY) ----------
+  document.getElementById('printPdfBtn').addEventListener('click', () => {
+    const filteredItems = getFilteredItems();
+    if (!filteredItems.length) {
+      showToast(currentLang==='en'?'No inventory items available to print!':'Tidak ada data inventaris untuk dicetak!', true);
+      return;
+    }
+
+    const rowsHtml = filteredItems.map(it => {
+      const s = itemStats(it);
+      const loc = locations.find(l => l.id === it.locationId);
+      const locName = loc ? loc.name : '—';
+      const purposes = (it.purposes && it.purposes.length) ? it.purposes.join(', ') : '—';
+      
+      return `<tr>
+        <td style="width:9%;"><strong>${escapeHtml(it.code||'—')}</strong></td>
+        <td style="width:17%;">${escapeHtml(it.name)}</td>
+        <td style="width:9%;">${escapeHtml(locName)}</td>
+        <td style="width:11%;">${escapeHtml(purposes)}</td>
+        <td style="width:6%;">${escapeHtml(it.category||'—')}</td>
+        <td class="num" style="width:5%;">${fmtInt(s.purchased)}</td>
+        <td class="num" style="width:5%;">${fmtInt(s.sold)}</td>
+        <td class="num" style="width:5%;"><strong>${fmtInt(s.onHand)}</strong></td>
+        <td class="num" style="width:4%;">${fmtInt(it.minStock)}</td>
+        <td class="num" style="width:4%;">${it.maxStock===''||it.maxStock==null?'—':fmtInt(it.maxStock)}</td>
+        <td class="num" style="width:8%;">${fmtRp(s.avgCost)}</td>
+        <td class="num" style="width:9%;">${fmtRp(s.invValue)}</td>
+        <td style="width:8%;"><span class="print-badge">[ ${s.status.toUpperCase()} ]</span></td>
+      </tr>`;
+    }).join('');
+
+    const templateHtml = `
+      <div class="pdf-print-container">
+        <h2>Inventory Report — Gudang BPro</h2>
+        <div class="print-meta">
+          <span>Generated: <strong>${nowStamp()}</strong></span>
+          <span>Printed by: <strong>${getCurrentUserEmail()}</strong></span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:9%;">Code</th>
+              <th style="width:17%;">Item Name</th>
+              <th style="width:9%;">Location</th>
+              <th style="width:11%;">Purpose(s)</th>
+              <th style="width:6%;">Category</th>
+              <th class="num" style="width:5%;">In</th>
+              <th class="num" style="width:5%;">Out</th>
+              <th class="num" style="width:5%;">On Hand</th>
+              <th class="num" style="width:4%;">Min</th>
+              <th class="num" style="width:4%;">Max</th>
+              <th class="num" style="width:8%;">Cost/Item</th>
+              <th class="num" style="width:9%;">Inv. Value</th>
+              <th style="width:8%;">Status</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </div>
+    `;
+
+    const filename = `Inventory_Report_${todayISO()}.pdf`;
+    pendingPdfExport = {
+      title: 'Inventory Report — Gudang BPro',
+      metaLines: [`Generated: ${nowStamp()}`, `Printed by: ${getCurrentUserEmail()}`],
+      columns: ['Code', 'Item Name', 'Location', 'Purpose(s)', 'Category', 'In', 'Out', 'On Hand', 'Min', 'Max', 'Cost/Item', 'Inv. Value', 'Status'],
+      columnStyles: {
+        0: { cellWidth: 20 },
+        5: { halign: 'right', cellWidth: 14 },
+        6: { halign: 'right', cellWidth: 14 },
+        7: { halign: 'right', cellWidth: 16 },
+        8: { halign: 'right', cellWidth: 12 },
+        9: { halign: 'right', cellWidth: 12 },
+        10: { halign: 'right', cellWidth: 22 },
+        11: { halign: 'right', cellWidth: 24 }
+      },
+      rows: filteredItems.map(it => {
+        const s = itemStats(it);
+        const loc = locations.find(l => l.id === it.locationId);
+        const locName = loc ? loc.name : '—';
+        const purposes = (it.purposes && it.purposes.length) ? it.purposes.join(', ') : '—';
+        return [
+          it.code || '—',
+          it.name,
+          locName,
+          purposes,
+          it.category || '—',
+          fmtInt(s.purchased),
+          fmtInt(s.sold),
+          fmtInt(s.onHand),
+          fmtInt(it.minStock),
+          it.maxStock === '' || it.maxStock == null ? '—' : fmtInt(it.maxStock),
+          fmtRp(s.avgCost),
+          fmtRp(s.invValue),
+          s.status.toUpperCase()
+        ];
+      }),
+      filename
+    };
+
+    openPdfPreviewModal(templateHtml, "Preview Inventory Report PDF (Horizontal)", filename);
+  });
 
   function renderTopItems(){
     const fromInput = document.getElementById('topItemsMonthFrom');
@@ -2172,28 +2573,11 @@
     document.getElementById('itemPhotoInput').value='';
   });
 
-  // ---------- render: inventory ----------
-  function renderInventory(){
-    const catSel = document.getElementById('invCategoryFilter');
-    const curCat = catSel.value;
-    catSel.innerHTML = `<option value="">${t('optAllCategories')}</option>` + CATEGORIES.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-    if(CATEGORIES.includes(curCat)) catSel.value = curCat;
-
-    const locSel = document.getElementById('invLocationFilter');
-    const curLoc = locSel.value;
-    locSel.innerHTML = `<option value="">${t('optAllLocations')}</option>` +
-      `<option value="__unassigned__">${t('optUnassignedLoc')}</option>` +
-      locations.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(l=>`<option value="${l.id}">${escapeHtml(l.name)}</option>`).join('');
-    if(curLoc) locSel.value = curLoc;
-
-    const sortIcon = document.getElementById('invValueSortIcon');
-    if(invSortDirection==='desc') sortIcon.textContent = '▼';
-    else if(invSortDirection==='asc') sortIcon.textContent = '▲';
-    else sortIcon.textContent = '⇅';
-
+  // Helper for filtering items
+  function getFilteredItems(){
     const search = document.getElementById('invSearch').value.trim().toLowerCase();
-    const catFilter = catSel.value;
-    const locFilter = locSel.value;
+    const catFilter = document.getElementById('invCategoryFilter').value;
+    const locFilter = document.getElementById('invLocationFilter').value;
     const statusFilter = document.getElementById('invStatusFilter').value;
     const tagFilter = selectedTagFilter.trim().toLowerCase();
 
@@ -2218,6 +2602,29 @@
     } else {
       rows.sort((a,b) => a.name.localeCompare(b.name));
     }
+    return rows;
+  }
+
+  // ---------- render: inventory ----------
+  function renderInventory(){
+    const catSel = document.getElementById('invCategoryFilter');
+    const curCat = catSel.value;
+    catSel.innerHTML = `<option value="">${t('optAllCategories')}</option>` + CATEGORIES.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    if(CATEGORIES.includes(curCat)) catSel.value = curCat;
+
+    const locSel = document.getElementById('invLocationFilter');
+    const curLoc = locSel.value;
+    locSel.innerHTML = `<option value="">${t('optAllLocations')}</option>` +
+      `<option value="__unassigned__">${t('optUnassignedLoc')}</option>` +
+      locations.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(l=>`<option value="${l.id}">${escapeHtml(l.name)}</option>`).join('');
+    if(curLoc) locSel.value = curLoc;
+
+    const sortIcon = document.getElementById('invValueSortIcon');
+    if(invSortDirection==='desc') sortIcon.textContent = '▼';
+    else if(invSortDirection==='asc') sortIcon.textContent = '▲';
+    else sortIcon.textContent = '⇅';
+
+    const rows = getFilteredItems();
 
     const body = document.getElementById('inventoryBody');
     if(!rows.length){
@@ -2298,16 +2705,31 @@
     body.querySelectorAll('[data-del-item]').forEach(b=>{
       b.addEventListener('click', ()=>{
         const id = b.getAttribute('data-del-item');
+        const it = items.find(i=>i.id===id);
+        if(!it) return;
+
         const hasTx = stockIn.some(x=>x.itemId===id) || stockOut.some(x=>x.itemId===id);
-        if(hasTx && !confirm(currentLang==='en'?'This item has stock-in/out history. Delete it and all related log entries?':'Barang ini memiliki riwayat masuk/keluar. Hapus barang dan seluruh catatan terkait?')) return;
-        items = items.filter(i=>i.id!==id);
-        stockIn = stockIn.filter(x=>x.itemId!==id);
-        stockOut = stockOut.filter(x=>x.itemId!==id);
-        if(itemImages[id]){
-          delete itemImages[id];
+        
+        const promptMsg = currentLang === 'en'
+          ? `⚠️ WARNING: You are about to permanently delete "${it.name}".${hasTx ? '\nThis item contains stock history entries that will also be permanently deleted!' : ''}\n\nTo prevent accidental deletion, please type "CONFIRM DELETE" below to confirm:`
+          : `⚠️ PERINGATAN: Anda akan menghapus permanen "${it.name}".${hasTx ? '\nBarang ini memiliki riwayat stok yang juga akan terhapus secara permanen!' : ''}\n\nUntuk mencegah penghapusan yang tidak disengaja, ketik "CONFIRM DELETE" di bawah untuk mengonfirmasi:`;
+
+        const userInput = prompt(promptMsg);
+
+        if (userInput === "CONFIRM DELETE") {
+          items = items.filter(i=>i.id!==id);
+          stockIn = stockIn.filter(x=>x.itemId!==id);
+          stockOut = stockOut.filter(x=>x.itemId!==id);
+          if(itemImages[id]){
+            delete itemImages[id];
+          }
+          saveData();
+          showToast(currentLang==='en'?'Item deleted.':'Barang dihapus.');
+        } else if (userInput !== null) {
+          alert(currentLang === 'en' 
+            ? 'Deletion canceled. You must type "CONFIRM DELETE" exactly as shown.' 
+            : 'Penghapan dibatalkan. Anda harus mengetik "CONFIRM DELETE" persis seperti yang dicantumkan.');
         }
-        saveData();
-        showToast(currentLang==='en'?'Item deleted.':'Barang dihapus.');
       });
     });
     body.querySelectorAll('[data-edit-item]').forEach(b=>{
@@ -2349,7 +2771,7 @@
 
     const historyLogs = [...ins, ...outs].sort((a,b) => {
       if((b.createdAt||0) !== (a.createdAt||0)) return (b.createdAt||0) - (a.createdAt||0);
-      return (b.date || '').localeCompare(a.date || '');
+      return (a.date || '').localeCompare(b.date || '');
     });
 
     const body = document.getElementById('itemHistoryBody');
@@ -2631,6 +3053,7 @@
     const maxStock = maxStockRaw==='' ? '' : Number(maxStockRaw);
     const itemWeight = Number(document.getElementById('itemInitWeight').value)||0;
     const newInitQty = Number(document.getElementById('itemInitQty').value)||0;
+    const userEmail = getCurrentUserEmail();
     err.style.display='none';
 
     let targetId = editingItemId;
@@ -2644,16 +3067,16 @@
         if(Number(ob.qty) !== newInitQty){
           ob.qty = newInitQty;
           ob.history = ob.history || [];
-          ob.history.push({ts: nowStamp(), summary: 'Initial quantity edited: ' + newInitQty});
+          ob.history.push({ts: nowStamp(), summary: `Initial quantity edited by ${userEmail}: ${newInitQty}`});
         }
       }else if(newInitQty > 0){
-        stockIn.push({id: uid(), itemId: editingItemId, vendor:'Opening balance', orderNo:'', receivedDate: todayISO(), qty:newInitQty, notes:'', history:[{ts:nowStamp(), summary:'Created from Inventory tab (opening balance)'}], createdAt: Date.now()});
+        stockIn.push({id: uid(), itemId: editingItemId, vendor:'Opening balance', orderNo:'', receivedDate: todayISO(), qty:newInitQty, notes:'', history:[{ts:nowStamp(), summary:`Created from Inventory tab by ${userEmail} (opening balance)`}], createdAt: Date.now()});
       }
     }else{
       targetId = uid();
       items.push({id:targetId, code, name, locationId, category, minStock, maxStock, weightKg: itemWeight, purposes: itemTags.slice()});
       if(newInitQty > 0){
-        stockIn.push({id: uid(), itemId:targetId, vendor:'Opening balance', orderNo:'', receivedDate: todayISO(), qty:newInitQty, notes:'', history:[{ts:nowStamp(), summary:'Created (opening balance)'}], createdAt: Date.now()});
+        stockIn.push({id: uid(), itemId:targetId, vendor:'Opening balance', orderNo:'', receivedDate: todayISO(), qty:newInitQty, notes:'', history:[{ts:nowStamp(), summary:`Created by ${userEmail} (opening balance)`}], createdAt: Date.now()});
       }
     }
 
@@ -2675,8 +3098,8 @@
     document.getElementById('globalPriceInput').value = globalPricePerKg || 0;
     const body = document.getElementById('priceHistoryBody');
     const rows = globalPriceHistory.slice().reverse();
-    if(!rows.length){ body.innerHTML = `<tr class="empty-row"><td colspan="3">${currentLang==='en'?'No price changes recorded yet.':'Belum ada riwayat perubahan harga.'}</td></tr>`; return; }
-    body.innerHTML = rows.map(h=>`<tr><td>${escapeHtml(h.ts)}</td><td class="num">${fmtRp(h.oldPrice)}</td><td class="num">${fmtRp(h.newPrice)}</td></tr>`).join('');
+    if(!rows.length){ body.innerHTML = `<tr class="empty-row"><td colspan="4">${currentLang==='en'?'No price changes recorded yet.':'Belum ada riwayat perubahan harga.'}</td></tr>`; return; }
+    body.innerHTML = rows.map(h=>`<tr><td>${escapeHtml(h.ts)}</td><td class="num">${fmtRp(h.oldPrice)}</td><td class="num">${fmtRp(h.newPrice)}</td><td>${escapeHtml(h.by||'System')}</td></tr>`).join('');
   }
   document.getElementById('saveGlobalPrice').addEventListener('click', ()=>{
     const err = document.getElementById('globalPriceError');
@@ -2684,7 +3107,7 @@
     const newVal = Number(document.getElementById('globalPriceInput').value);
     if(isNaN(newVal) || newVal<0){ err.textContent = currentLang==='en'?'Enter a valid price.':'Masukkan harga yang valid.'; err.style.display='block'; return; }
     if(newVal === globalPricePerKg){ showToast(currentLang==='en'?'Price unchanged.':'Harga tidak berubah.'); return; }
-    globalPriceHistory.push({ts: nowStamp(), oldPrice: globalPricePerKg, newPrice: newVal});
+    globalPriceHistory.push({ts: nowStamp(), oldPrice: globalPricePerKg, newPrice: newVal, by: getCurrentUserEmail()});
     globalPricePerKg = newVal;
     saveData();
     showToast(currentLang==='en'?'Price updated.':'Harga diperbarui.');
@@ -2988,6 +3411,7 @@
     const vendor = vendorSel.value === '__add__' ? '' : vendorSel.value;
     const orderNo = document.getElementById('siOrderNo').value.trim();
     const notes = document.getElementById('siNotes').value.trim();
+    const userEmail = getCurrentUserEmail();
 
     if(!siSelectedItemId){
       err.textContent = currentLang==='en'?'Please search and select an existing item. Create new items in Inventory tab.':'Silakan cari dan pilih barang. Tambah barang baru dari tab Inventaris.';
@@ -3002,7 +3426,7 @@
       vendor, orderNo,
       receivedDate,
       qty, notes,
-      history:[{ts:nowStamp(), summary:'Created'}],
+      history:[{ts:nowStamp(), summary:`Created by ${userEmail}`}],
       createdAt: Date.now()
     });
 
@@ -3049,6 +3473,7 @@
     const newOrderNo = document.getElementById('editSiOrderNo').value.trim();
     const newReceivedDate = document.getElementById('editSiReceivedDate').value || x.receivedDate;
     const newNotes = document.getElementById('editSiNotes').value.trim();
+    const userEmail = getCurrentUserEmail();
 
     const changes = [];
     if(newVendor !== x.vendor) changes.push(`Vendor: ${x.vendor||'—'} → ${newVendor||'—'}`);
@@ -3062,7 +3487,7 @@
     x.receivedDate = newReceivedDate;
     x.notes = newNotes;
     x.history = x.history || [];
-    if(changes.length) x.history.push({ts: nowStamp(), summary: changes.join('; ')});
+    if(changes.length) x.history.push({ts: nowStamp(), summary: `Edited by ${userEmail}: ` + changes.join('; ')});
 
     editSiModal.classList.remove('active');
     saveData();
@@ -3143,6 +3568,7 @@
     const date = document.getElementById('soDate').value || todayISO();
     const kegunaan = document.getElementById('soKegunaan').value.trim();
     const notes = document.getElementById('soNotes').value.trim();
+    const userEmail = getCurrentUserEmail();
 
     if(!itemId){ err.textContent = currentLang==='en'?'Search and select an item.':'Cari dan pilih barang.'; err.style.display='block'; return; }
     if(!qty || qty<=0){ err.textContent = currentLang==='en'?'Enter a quantity greater than zero.':'Masukkan jumlah lebih dari nol.'; err.style.display='block'; return; }
@@ -3153,7 +3579,7 @@
       err.style.display='block';
       return;
     }
-    stockOut.push({id:uid(), itemId, kegunaan, date, qty, notes, history:[{ts:nowStamp(), summary:'Created'}], createdAt: Date.now()});
+    stockOut.push({id:uid(), itemId, kegunaan, date, qty, notes, history:[{ts:nowStamp(), summary:`Created by ${userEmail}`}], createdAt: Date.now()});
 
     document.getElementById('soKegunaan').value='';
     document.getElementById('soQty').value='';
@@ -3201,6 +3627,7 @@
     const newDate = document.getElementById('editSoDate').value || x.date;
     const newKegunaan = document.getElementById('editSoKegunaan').value.trim();
     const newNotes = document.getElementById('editSoNotes').value.trim();
+    const userEmail = getCurrentUserEmail();
 
     const changes = [];
     if(newDate !== x.date) changes.push(`Date: ${x.date||'—'} → ${newDate}`);
@@ -3210,7 +3637,7 @@
 
     x.date = newDate; x.kegunaan = newKegunaan; x.qty = newQty; x.notes = newNotes;
     x.history = x.history || [];
-    if(changes.length) x.history.push({ts: nowStamp(), summary: changes.join('; ')});
+    if(changes.length) x.history.push({ts: nowStamp(), summary: `Edited by ${userEmail}: ` + changes.join('; ')});
 
     editSoModal.classList.remove('active');
     saveData();
@@ -3343,7 +3770,7 @@
     return XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:true});
   }
   function parsePurposes(str){
-    return String(str||'').split(/[;,]/).map(s=>s.trim()).filter(Boolean);
+    return String(str||'').split(/[;,/]/).map(s=>s.trim()).filter(Boolean);
   }
   function findItemId(itemMap, name, category, purposesStr, minStock, maxStock, code=''){
     const key = String(name||'').trim().toLowerCase();
@@ -3450,7 +3877,7 @@
         for(let r=headerIdx+1;r<pricingRows.length;r++){
           const row = pricingRows[r];
           if(!row || !row[0]) continue;
-          newGlobalHistory.push({ts:String(row[0]), oldPrice:Number(row[1])||0, newPrice:Number(row[2])||0});
+          newGlobalHistory.push({ts:String(row[0]), oldPrice:Number(row[1])||0, newPrice:Number(row[2])||0, by: String(row[3]||'System')});
         }
       }
     }
@@ -3483,99 +3910,6 @@
       photosByName
     };
   }
-
-  // ---------- export ----------
-  document.getElementById('exportBtn').addEventListener('click', ()=>{
-    if(!items.length){ showToast(currentLang==='en'?'Add at least one item before exporting.':'Tambah minimal satu barang sebelum mengekspor.', true); return; }
-
-    const invHeaderGroup = ['Item Description','','','','','Purchases','','','','','','Usage','Inventory Summary','','','',''];
-    const invHeader = ['Item Code','Item','Location','Purpose(s)','Category','Initial Order','Purchases','Stok Bahan','Total Weight (kg)','Total Cost','Cost Per Item','Total Bahan Keluar','Stok Sekarang','Stok Minimum','Stok Maksimum','Inventory Value','Status'];
-    const invRows = items.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(it=>{
-      const s = itemStats(it);
-      const fi = firstInDate(it.id);
-      const initialOrder = fi ? Number(fi.qty||0) : 0;
-      const locObj = locations.find(l=>l.id===it.locationId);
-      return [
-        it.code||'', it.name, locObj ? locObj.name : '', (it.purposes||[]).join('; '), it.category||'',
-        initialOrder, s.purchased, s.purchased, round2(s.totalWeight),
-        round2(s.totalCost), round2(s.avgCost),
-        s.sold, s.onHand, Number(it.minStock||0), (it.maxStock===''||it.maxStock==null)?'':Number(it.maxStock),
-        round2(s.invValue), s.status
-      ];
-    });
-    const wsInv = XLSX.utils.aoa_to_sheet([invHeaderGroup, invHeader, ...invRows]);
-    wsInv['!merges'] = [
-      {s:{r:0,c:0},e:{r:0,c:4}}, {s:{r:0,c:5},e:{r:0,c:10}}, {s:{r:0,c:12},e:{r:0,c:16}}
-    ];
-    wsInv['!cols'] = invHeader.map(h => ({wch: Math.max(12, h.length+2)}));
-
-    const masukHeader = ['Item Code','Item','Purpose(s)','Category','Vendor / Supplier','Order #','Received Date','Quantity Purchases','Total Cost','Notes','History'];
-    const masukRows = stockIn.slice().sort((a,b)=>(a.receivedDate||'').localeCompare(b.receivedDate||'')).map(x=>{
-      const it = items.find(i=>i.id===x.itemId);
-      const totalWeight = Number(x.qty||0) * Number(it? it.weightKg||0 : 0);
-      const cost = totalWeight * Number(globalPricePerKg||0);
-      return [
-        it? it.code||'' : '', it? it.name:'(deleted item)', it? (it.purposes||[]).join('; ') : '', it? it.category||'':'',
-        x.vendor||'', x.orderNo||'', x.receivedDate||'',
-        Number(x.qty||0), round2(cost), x.notes||'', serializeHistory(x.history)
-      ];
-    });
-    const wsMasuk = XLSX.utils.aoa_to_sheet([['Bahan Masuk Gudang'], masukHeader, ...masukRows]);
-    wsMasuk['!merges'] = [{s:{r:0,c:0},e:{r:0,c:10}}];
-    wsMasuk['!cols'] = masukHeader.map(h => ({wch: Math.max(12, h.length+2)}));
-
-    const keluarHeader = ['Item Code','Item','Kegunaan','Category','Tanggal Keluar','Jumlah Keluar','Notes','History'];
-    const keluarRows = stockOut.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(x=>{
-      const it = items.find(i=>i.id===x.itemId);
-      return [ it? it.code||'' : '', it? it.name:'(deleted item)', x.kegunaan||'', it? it.category||'':'', x.date||'', Number(x.qty||0), x.notes||'', serializeHistory(x.history) ];
-    });
-    const wsKeluar = XLSX.utils.aoa_to_sheet([['Bahan Keluar Gudang'], keluarHeader, ...keluarRows]);
-    wsKeluar['!merges'] = [{s:{r:0,c:0},e:{r:0,c:7}}];
-    wsKeluar['!cols'] = keluarHeader.map(h => ({wch: Math.max(12, h.length+2)}));
-
-    const locationSheetRows = locations.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(l=>[l.name, l.address||'', l.contactName||'', l.phone||'']);
-    const wsLocations = XLSX.utils.aoa_to_sheet([['Location Name', 'Address', 'Contact Person', 'Phone Number'], ...locationSheetRows]);
-    wsLocations['!cols'] = [{wch:20}, {wch:30}, {wch:20}, {wch:18}];
-
-    const vendorSheetRows = vendors.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(v=>[v.name, v.contactName||'', v.phone||'']);
-    const wsVendors = XLSX.utils.aoa_to_sheet([['Vendor Name', 'Contact Person', 'Phone Number'], ...vendorSheetRows]);
-    wsVendors['!cols'] = [{wch:28}, {wch:20}, {wch:18}];
-
-    const pricingSheetRows = [
-      ['Current Price (Rp/kg)', round2(globalPricePerKg)],
-      [],
-      ['Timestamp','Old Price','New Price'],
-      ...globalPriceHistory.map(h=>[h.ts, round2(h.oldPrice), round2(h.newPrice)])
-    ];
-    const wsPricing = XLSX.utils.aoa_to_sheet(pricingSheetRows);
-    wsPricing['!cols'] = [{wch:24},{wch:16},{wch:16}];
-
-    const photoDataRows = [];
-    items.forEach(it=>{
-      const img = itemImages[it.id];
-      if(!img) return;
-      for(let i=0;i<img.length;i+=PHOTO_CHUNK_SIZE){
-        photoDataRows.push([it.name, Math.floor(i/PHOTO_CHUNK_SIZE), img.slice(i, i+PHOTO_CHUNK_SIZE)]);
-      }
-    });
-    const wsPhotos = XLSX.utils.aoa_to_sheet([['Item','ChunkIndex','Data'], ...photoDataRows]);
-    wsPhotos['!cols'] = [{wch:24},{wch:12},{wch:50}];
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, wsInv, 'Inventory Summary');
-    XLSX.utils.book_append_sheet(wb, wsMasuk, 'Masuk');
-    XLSX.utils.book_append_sheet(wb, wsKeluar, 'Keluar');
-    XLSX.utils.book_append_sheet(wb, wsLocations, 'Locations');
-    XLSX.utils.book_append_sheet(wb, wsVendors, 'Vendors');
-    XLSX.utils.book_append_sheet(wb, wsPricing, 'Material Pricing');
-    XLSX.utils.book_append_sheet(wb, wsPhotos, 'Photos');
-
-    const stamp = todayISO();
-    XLSX.writeFile(wb, `Stock_Monitor_Export_${stamp}.xlsx`);
-    showToast(currentLang==='en'?'Excel file exported — this file can fully restore your data on import.':'File Excel berhasil diekspor.');
-  });
-
-  function round2(n){ return Math.round(Number(n||0)*100)/100; }
 
   // ---------- render all ----------
   function renderAll(){
