@@ -6,7 +6,7 @@
 <title>Stock Monitor — Gudang BPro</title>
 
 <!-- External Libraries -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -577,6 +577,70 @@
     .field.span2, .field.span3{grid-column:span 1;}
     table{font-size:12px;}
   }
+  #syncBar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 14px;margin-bottom:16px;border:1px solid var(--border-c);background:var(--bg-panel);font-size:13px;position:sticky;top:0;z-index:40;}
+  #syncBar[data-state=saved]{border-left:4px solid var(--green);}
+  #syncBar:not([data-state=saved]){border-left:4px solid var(--amber);}
+  #syncBar button{background:var(--bg-alt);color:var(--text-c);border:1px solid var(--border-c);}
+  button:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--amber);outline-offset:3px;}
+  .tags-hover-container:focus-within .tags-tooltip,.tags-hover-container.expanded .tags-tooltip{display:flex;}
+  #view-inventory thead th{font-size:11px;}
+  #view-inventory .row-actions button{min-width:36px;min-height:36px;}
+  [hidden]{display:none!important;}
+  .stat[role=button]{cursor:pointer;}
+  #fullColumns{display:none;}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+  thead th.sortable .table-sort-button{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;background:transparent;color:inherit;padding:0;border:0;font:inherit;letter-spacing:inherit;text-transform:inherit;text-align:inherit;min-height:28px;}
+  thead th.sortable .table-sort-button:hover{color:var(--amber);}
+  .sort-indicator{color:var(--text-dim);font-size:11px;flex-shrink:0;}
+  th[aria-sort] .sort-indicator{color:var(--amber);}
+  @media(max-width:560px){thead th.sortable .table-sort-button{min-height:44px;}}
+  @media(max-width:560px){
+    .app{width:100%;padding:12px 10px 32px;}
+    button,.inline-loc-select{min-height:44px;}
+    nav.tabs{flex-wrap:nowrap;overflow-x:auto;}
+    nav.tabs button{white-space:nowrap;}
+    .modal-backdrop{padding:8px;}
+    #view-inventory table{font-size:13px;}
+    #view-inventory th:nth-child(n+4):nth-child(-n+7),#view-inventory td:nth-child(n+4):nth-child(-n+7),
+    #view-inventory th:nth-child(n+9):nth-child(-n+12),#view-inventory td:nth-child(n+9):nth-child(-n+12){display:none;}
+    #view-inventory .row-actions button{min-width:44px;min-height:44px;}
+    #fullColumns{display:inline-block;}
+    #view-inventory.show-all-columns th,#view-inventory.show-all-columns td{display:table-cell!important;}
+  }
+
+  .work-eyebrow{font:600 10px var(--mono);letter-spacing:.12em;color:var(--amber);margin-bottom:8px;}
+  .work-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+  .work-action{display:flex;gap:14px;align-items:center;padding:17px 18px;background:var(--bg-panel);border:1px solid var(--border-c);border-radius:8px;color:var(--text-c);text-align:left;}
+  .work-action:hover{border-color:var(--amber);background:var(--bg-alt);}
+  .work-action-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:10px;background:var(--badge-low-bg);color:var(--amber);font-size:22px;flex-shrink:0;}
+  .work-action strong{display:block;font-size:14px;margin-bottom:5px;}.work-action small{display:block;color:var(--text-dim);font-weight:400;line-height:1.5;}
+  .work-action .work-arrow{margin-left:auto;color:var(--text-dim);font-size:18px;}
+  .work-modal{border-radius:10px;box-shadow:0 24px 70px #0007;}.work-modal .modal-head{padding:20px 24px;}.work-modal .modal-body{padding:20px 24px;gap:16px;}.work-modal .modal-foot{padding:16px 24px;background:var(--bg-alt);border-radius:0 0 10px 10px;flex-wrap:wrap;}
+  .work-modal .modal-head h3{font-family:var(--sans);font-size:19px;text-transform:none;}.work-description{margin:0;color:var(--text-dim);line-height:1.6;font-size:13px;}
+  .work-steps{font:12px var(--mono);color:var(--text-c);display:flex;gap:12px;}.work-steps span{color:var(--amber);}
+  .work-form{display:grid;grid-template-columns:1fr 1fr 1.2fr 1.4fr;gap:12px;margin-bottom:18px;}.work-form label,.work-label{display:flex;flex-direction:column;gap:7px;font-size:12px;color:var(--text-dim);}
+  .work-modal input,.work-modal select{width:100%;padding:10px 11px;border:1px solid var(--border-c);border-radius:5px;background:var(--bg-app);color:var(--text-c);font:13px var(--sans);min-height:40px;}
+  .work-modal input:focus,.work-modal select:focus{outline:2px solid var(--amber);outline-offset:1px;}
+  .work-table-wrap{overflow:auto;border:1px solid var(--border-c);border-radius:7px;margin-bottom:12px;}.work-table{min-width:600px;}.work-table td{padding:11px 10px;}.work-table th{font-size:10px;}
+  .work-table select{min-width:210px;}.work-table input[type=number]{min-width:90px;max-width:120px;font-family:var(--mono);}.work-remove{background:transparent;color:var(--text-dim);font-size:20px;padding:8px;}.work-remove:hover{color:var(--red);}
+  .work-hint{font-size:11px;color:var(--text-dim);line-height:1.6;}.work-error{background:var(--badge-out-bg);color:var(--badge-out-fg);padding:12px 14px;border-radius:6px;line-height:1.5;margin:0;}
+  .work-warning{padding:11px 14px;border-left:3px solid var(--amber);background:var(--badge-low-bg);font-size:12px;line-height:1.6;}
+  .count-form{grid-template-columns:1fr 1fr 1.6fr;}.count-table-wrap{max-height:340px;}.work-count-summary{margin-bottom:12px;font-size:12px;color:var(--text-dim);}.work-count-summary strong{color:var(--text-c);}
+  .difference-positive{color:var(--badge-in-fg);}.difference-negative{color:var(--badge-out-fg);}.counted-row{background:var(--badge-low-bg);}
+  .work-review-summary{display:flex;gap:20px;flex-wrap:wrap;padding:16px;margin-bottom:16px;border-radius:8px;background:var(--bg-alt);}.work-review-summary strong{display:block;font:600 23px var(--mono);margin-bottom:4px;}.work-review-summary span{color:var(--text-dim);font-size:12px;}
+  .work-page-head{display:flex;justify-content:space-between;align-items:center;gap:20px;margin:4px 0 24px;}.work-page-head h2{font-size:26px;margin:0 0 9px;letter-spacing:-.03em;}.work-page-head p{font-size:13px;color:var(--text-dim);line-height:1.6;margin:0;max-width:620px;}
+  .work-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px;}.work-metric{padding:18px;background:var(--bg-panel);border:1px solid var(--border-c);border-radius:8px;}.work-metric strong{display:block;font:600 25px var(--mono);margin-bottom:7px;}.work-metric span{font-size:12px;color:var(--text-dim);}
+  .archive-item-name{font-size:22px;font-weight:600;}.archive-badge{display:inline-block;border:1px solid var(--border-c);padding:2px 5px;font:10px var(--mono);color:var(--text-dim);border-radius:4px;margin-left:6px;}.archive-row{opacity:.78;}.btn-archive{border:1px solid var(--border-c);background:transparent;color:var(--amber);border-radius:4px;}.count-label{font:10px var(--mono);color:var(--amber);white-space:nowrap;}
+  #invLifecycleFilter{border-color:var(--amber);}
+  .work-modal .bulk-item-search{min-width:230px;}
+  .bulk-suggestions{max-height:180px;overflow-y:auto;border:1px solid var(--amber);border-radius:5px;margin-top:5px;background:var(--bg-app);min-width:230px;}
+  .bulk-suggestions [role=option],.bulk-no-match{padding:11px 12px;white-space:normal;font-size:13px;line-height:1.4;cursor:pointer;}
+  .bulk-suggestions [role=option]:hover,.bulk-suggestions [aria-selected=true]{background:var(--badge-low-bg);color:var(--amber);}.bulk-no-match{color:var(--text-dim);cursor:default;}
+  .bulk-option-tags{display:block;margin-top:4px;color:var(--text-dim);font-size:11px;}
+  @media(max-width:700px){.work-actions{grid-template-columns:1fr;}.work-form,.count-form{grid-template-columns:1fr 1fr;}.work-page-head{align-items:flex-start;flex-direction:column;}.work-page-head h2{font-size:22px;}.work-modal .modal-head,.work-modal .modal-body,.work-modal .modal-foot{padding:16px;}.work-metrics{gap:8px;}.work-metric{padding:12px;}.work-metric strong{font-size:19px;}.work-table{min-width:580px;}}
+  @media(max-width:420px){.work-form,.count-form{grid-template-columns:1fr;}.work-metrics{grid-template-columns:1fr;}.work-metric{display:flex;gap:12px;align-items:center;}.work-metric strong{margin:0;}.work-steps{font-size:10px;gap:7px;}}
+  @media(max-width:700px){.count-table-wrap .work-table{min-width:0;width:100%;table-layout:fixed;}.count-table-wrap th:nth-child(2),.count-table-wrap td:nth-child(2){display:none;}.count-table-wrap th,.count-table-wrap td{padding:9px 5px;white-space:normal;overflow-wrap:anywhere;}.count-table-wrap th{font-size:8px;letter-spacing:0;}.count-table-wrap th:first-child{width:30%;}.count-table-wrap input[type=number]{min-width:0;width:100%;padding:8px 4px;}.count-table-wrap td{font-size:11px;}}
+
 </style>
 </head>
 <body>
@@ -588,8 +652,8 @@
     <h2 style="margin-top: 0; font-family: var(--mono); color: var(--text-c);">Gudang BPro Access</h2>
     <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 20px;">Please log in to view and manage the inventory.</p>
     
-    <input type="email" id="auth-email" placeholder="Email address..." style="padding: 10px 12px; margin-bottom: 10px; width: 100%; border: 1px solid var(--border-c); background: var(--bg-panel); color: var(--text-c); font-family: var(--sans); box-sizing: border-box;">
-    <input type="password" id="auth-password" placeholder="Password..." style="padding: 10px 12px; margin-bottom: 15px; width: 100%; border: 1px solid var(--border-c); background: var(--bg-panel); color: var(--text-c); font-family: var(--sans); box-sizing: border-box;">
+    <input type="email" id="auth-email" autocomplete="username" aria-label="Email address" placeholder="Email address..." style="padding: 10px 12px; margin-bottom: 10px; width: 100%; border: 1px solid var(--border-c); background: var(--bg-panel); color: var(--text-c); font-family: var(--sans); box-sizing: border-box;">
+    <input type="password" id="auth-password" autocomplete="current-password" aria-label="Password" placeholder="Password..." style="padding: 10px 12px; margin-bottom: 15px; width: 100%; border: 1px solid var(--border-c); background: var(--bg-panel); color: var(--text-c); font-family: var(--sans); box-sizing: border-box;">
     
     <button id="auth-submit" class="btn-amber" style="width: 100%; padding: 12px; font-size: 14px;">Sign In</button>
     <p id="auth-error" style="color: var(--red); display: none; font-size: 12px; margin-top: 15px; font-family: var(--mono);">✖ Incorrect email or password</p>
@@ -597,6 +661,12 @@
 </div>
 
 <div class="app">
+  <section id="syncBar" aria-label="Cloud saving" role="status" aria-live="polite">
+    <strong id="syncLabel">Loading cloud data…</strong>
+    <button type="button" id="retrySave" hidden>Retry / Coba lagi</button>
+    <button type="button" id="downloadDraft" hidden>Download draft / Unduh draf</button>
+    <button type="button" id="reloadCloud" hidden>Discard draft &amp; load cloud / Muat cloud</button>
+  </section>
 
   <header class="top">
     <div class="brand">
@@ -621,6 +691,7 @@
     <button data-view="analytics" data-i18n="tabAnalytics">Item Analytics</button>
     <button data-view="stockin" data-i18n="tabStockIn">Stock In (Masuk)</button>
     <button data-view="stockout" data-i18n="tabStockOut">Stock Out (Keluar)</button>
+    <button data-view="counts" data-work-en="Stock counts" data-work-id="Hitung stok">Stock counts</button>
     <button data-view="pricing" data-i18n="tabPricing">Material Pricing</button>
     <button data-view="locations" data-i18n="tabLocations">Locations</button>
     <button data-view="vendors" data-i18n="tabVendors">Vendors</button>
@@ -692,6 +763,10 @@
 
   <!-- INVENTORY -->
   <div class="view" id="view-inventory">
+    <div class="work-actions">
+      <button type="button" class="work-action" id="bulkInventory"><span class="work-action-icon" aria-hidden="true">⇄</span><span><strong data-work-en="Move stock in one batch" data-work-id="Catat stok sekaligus">Move stock in one batch</strong><small data-work-en="Receive or issue several items together" data-work-id="Terima atau keluarkan beberapa barang">Receive or issue several items together</small></span><span class="work-arrow" aria-hidden="true">→</span></button>
+      <button type="button" class="work-action" id="countInventory"><span class="work-action-icon" aria-hidden="true">✓</span><span><strong data-work-en="Check physical stock" data-work-id="Periksa stok fisik">Check physical stock</strong><small data-work-en="Compare counted quantities and record differences" data-work-id="Bandingkan hitungan dan catat selisih">Compare counted quantities and record differences</small></span><span class="work-arrow" aria-hidden="true">→</span></button>
+    </div>
     <div class="toolbar">
       <input type="text" id="invSearch" placeholder="Search item code, name or purpose…" data-i18n-ph="phInvSearch" style="min-width:180px;">
       <select id="invCategoryFilter"><option value="" data-i18n="optAllCategories">All categories</option></select>
@@ -703,6 +778,7 @@
 
       <select id="invLocationFilter"><option value="" data-i18n="optAllLocations">All locations</option></select>
       
+      <select id="invLifecycleFilter" aria-label="Item lifecycle"><option value="active" data-work-en="Active items" data-work-id="Barang aktif">Active items</option><option value="archived" data-work-en="Archived items" data-work-id="Barang diarsipkan">Archived items</option><option value="all" data-work-en="All items" data-work-id="Semua barang">All items</option></select>
       <select id="invStatusFilter">
         <option value="" data-i18n="optAllStatus">All status</option>
         <option value="In Stock" data-i18n="optInStock">In Stock</option>
@@ -731,7 +807,7 @@
               <th class="num" data-i18n="thMin">Min</th>
               <th class="num" data-i18n="thMax">Max</th>
               <th class="num" data-i18n="thCostPerItem">Cost Per Item</th>
-              <th class="num sortable" id="thInvValueSort"><span data-i18n="thInvValue">Inv. Value</span> <span id="invValueSortIcon">⇅</span></th>
+              <th class="num sortable" id="thInvValueSort"><span data-i18n="thInvValue">Inv. Value</span></th>
               <th data-i18n="thStatus">Status</th>
               <th></th>
             </tr>
@@ -797,7 +873,7 @@
   </div>
 
   <!-- STOCK IN -->
-  <div class="view" id="view-stockin">
+  <div class="view" id="view-stockin"><div class="toolbar"><button class="btn-amber" id="bulkStockIn" data-work-en="+ Receive a batch" data-work-id="+ Terima batch">+ Receive a batch</button><span class="work-hint" data-work-en="Several items, one delivery, one save." data-work-id="Beberapa barang, satu penerimaan, sekali simpan.">Several items, one delivery, one save.</span></div>
     <section class="panel">
       <div class="panel-head"><h2 data-i18n="siPanelTitle">Log stock received</h2></div>
       <div class="panel-body" style="padding:14px 16px; max-height:none; overflow:visible;">
@@ -859,7 +935,7 @@
   </div>
 
   <!-- STOCK OUT -->
-  <div class="view" id="view-stockout">
+  <div class="view" id="view-stockout"><div class="toolbar"><button class="btn-amber" id="bulkStockOut" data-work-en="+ Issue a batch" data-work-id="+ Keluarkan batch">+ Issue a batch</button><span class="work-hint" data-work-en="Availability checked across the whole batch." data-work-id="Ketersediaan diperiksa untuk seluruh batch.">Availability checked across the whole batch.</span></div>
     <section class="panel">
       <div class="panel-head"><h2 data-i18n="soPanelTitle">Log stock issued / used</h2></div>
       <div class="panel-body" style="padding:14px 16px; max-height:none; overflow:visible;">
@@ -917,6 +993,12 @@
   </div>
 
   <!-- PRICING (GLOBAL) -->
+<div class="view" id="view-counts">
+  <div class="work-page-head"><div><div class="work-eyebrow" data-work-en="INVENTORY ACCURACY" data-work-id="AKURASI INVENTARIS">INVENTORY ACCURACY</div><h2 data-work-en="Count it. Check it. Record it." data-work-id="Hitung. Periksa. Catat.">Count it. Check it. Record it.</h2><p data-work-en="Compare physical quantities with your records, with a clear trail for every adjustment." data-work-id="Bandingkan stok fisik dengan catatan dan simpan riwayat setiap penyesuaian.">Compare physical quantities with your records, with a clear trail for every adjustment.</p></div><button class="btn-amber" id="startCountPage" data-work-en="+ Start stock count" data-work-id="+ Mulai hitung stok">+ Start stock count</button></div>
+  <div class="work-metrics" id="countMetrics"></div>
+  <section class="panel"><div class="panel-head"><h2 data-work-en="Count history" data-work-id="Riwayat hitungan">Count history</h2><span class="work-hint" data-work-en="Recorded checks, including zero differences" data-work-id="Termasuk pemeriksaan tanpa selisih">Recorded checks, including zero differences</span></div><div class="panel-body"><table><thead><tr><th data-i18n="thDateTime">Date / Time</th><th data-i18n="thItem">Item</th><th class="num" data-work-en="Expected" data-work-id="Tercatat">Expected</th><th class="num" data-work-en="Counted" data-work-id="Terhitung">Counted</th><th class="num" data-work-en="Difference" data-work-id="Selisih">Difference</th><th data-work-en="Reason" data-work-id="Alasan">Reason</th><th data-i18n="thUpdatedBy">Updated by</th></tr></thead><tbody id="countHistoryBody"></tbody></table></div></section>
+</div>
+
   <div class="view" id="view-pricing">
     <section class="panel">
       <div class="panel-head"><h2 data-i18n="pricingTitle">Material pricing</h2></div>
@@ -1036,7 +1118,7 @@
 
   <div class="footer-bottom-bar">
     <div class="footer-left">
-      <footer class="note" data-i18n="footerNote">Data is stored privately in Firebase Realtime Database and stays synced live across all devices. "Export Save Data" produces a ZIP containing complete JSON data and raw uncompressed images. "Import Data" can restore from either this ZIP or an Excel file.</footer>
+      <footer class="note" data-i18n="footerNote">Check the cloud status before closing. Export Save Data creates a complete ZIP backup. Import accepts ZIP, JSON backups, and Excel reports. Excel reports do not contain photos; matching existing photos are preserved.</footer>
     </div>
     <div class="footer-actions">
       <button class="btn-bottom-footer" id="logoutBtn">🔒 <span id="logoutText">Logout</span></button>
@@ -1096,6 +1178,50 @@
       <button class="btn-primary" id="saveItemModal" data-i18n="btnSaveItem">Save item</button>
     </div>
   </div>
+</div>
+
+<!-- Daily warehouse workflows -->
+<div class="modal-backdrop" id="bulkModal">
+  <div class="modal modal-full work-modal">
+    <div class="modal-head"><div><div class="work-eyebrow" data-work-en="STOCK MOVEMENTS" data-work-id="PERGERAKAN STOK">STOCK MOVEMENTS</div><h3 data-work-en="Bulk stock entry" data-work-id="Entri stok massal">Bulk stock entry</h3></div><button class="close-x" id="closeBulkModal" aria-label="Close">×</button></div>
+    <div class="modal-body">
+      <div class="work-steps" id="bulkSteps">1. Enter items <span>→</span> 2. Review <span>→</span> 3. Save batch</div>
+      <p class="work-description" data-work-en="Record one delivery or issue across several items. Every line is saved together." data-work-id="Catat penerimaan atau pengeluaran beberapa barang. Semua baris disimpan sekaligus.">Record one delivery or issue across several items. Every line is saved together.</p>
+      <div id="bulkEditor">
+        <div class="work-form">
+          <label><span data-work-en="Movement" data-work-id="Pergerakan">Movement</span><select id="bulkDirection"><option value="in" data-work-en="Stock in · receive" data-work-id="Stok masuk · terima">Stock in · receive</option><option value="out" data-work-en="Stock out · issue" data-work-id="Stok keluar · pakai">Stock out · issue</option></select></label>
+          <label><span data-work-en="Date" data-work-id="Tanggal">Date</span><input type="date" id="bulkDate"></label>
+          <label id="bulkVendorField"><span data-work-en="Vendor (optional)" data-work-id="Pemasok (opsional)">Vendor (optional)</span><select id="bulkVendor"></select></label>
+          <label><span data-work-en="Reference / purpose" data-work-id="Referensi / kegunaan">Reference / purpose</span><input id="bulkReference" maxlength="200" placeholder="Delivery note, work order…"></label>
+        </div>
+        <div class="work-table-wrap"><table class="work-table"><thead><tr><th data-work-en="Item" data-work-id="Barang">Item</th><th class="num" data-work-en="On hand" data-work-id="Stok tersedia">On hand</th><th data-work-en="Quantity" data-work-id="Jumlah">Quantity</th><th data-work-en="Line note" data-work-id="Catatan baris">Line note</th><th></th></tr></thead><tbody id="bulkLines"></tbody></table></div>
+        <button type="button" class="btn-ghost" id="addBulkLine" data-work-en="+ Add another item" data-work-id="+ Tambah barang">+ Add another item</button>
+      </div>
+      <div id="bulkReview" hidden></div>
+      <p class="work-error" id="bulkError" role="alert" hidden></p>
+      <div class="work-hint" data-work-en="Duplicate items are combined when checking availability. No partial batches." data-work-id="Barang berulang dijumlahkan saat memeriksa stok. Tidak ada batch parsial.">Duplicate items are combined when checking availability. No partial batches.</div>
+    </div>
+    <div class="modal-foot"><button class="btn-ghost" id="cancelBulkModal" data-work-en="Cancel" data-work-id="Batal">Cancel</button><button class="btn-ghost" id="editBulkBatch" hidden data-work-en="Back to edit" data-work-id="Kembali edit">Back to edit</button><button class="btn-amber" id="reviewBulkBatch" data-work-en="Review batch →" data-work-id="Tinjau batch →">Review batch →</button><button class="btn-amber" id="saveBulkBatch" hidden data-work-en="Save whole batch" data-work-id="Simpan seluruh batch">Save whole batch</button></div>
+  </div>
+</div>
+<div class="modal-backdrop" id="countModal">
+  <div class="modal modal-full work-modal">
+    <div class="modal-head"><div><div class="work-eyebrow" data-work-en="PHYSICAL VERIFICATION" data-work-id="PEMERIKSAAN FISIK">PHYSICAL VERIFICATION</div><h3 data-work-en="Physical stock count" data-work-id="Hitung stok fisik">Physical stock count</h3></div><button class="close-x" id="closeCountModal" aria-label="Close">×</button></div>
+    <div class="modal-body">
+      <p class="work-description" data-work-en="Enter only items you have physically counted. A blank field means not counted; zero means none found." data-work-id="Isi hanya barang yang telah dihitung. Kolom kosong berarti belum dihitung; nol berarti tidak ditemukan.">Enter only items you have physically counted. A blank field means not counted; zero means none found.</p>
+      <div class="work-warning" data-work-en="Pause stock movements while counting. If cloud data changes, this count must be restarted." data-work-id="Jeda pergerakan barang selama penghitungan. Jika data cloud berubah, mulai penghitungan baru.">Pause stock movements while counting. If cloud data changes, this count must be restarted.</div>
+      <div id="countEditor">
+        <div class="work-form count-form"><label><span data-work-en="Find an item" data-work-id="Cari barang">Find an item</span><input id="countSearch" type="search" placeholder="Name or code…"></label><label><span data-work-en="Location" data-work-id="Lokasi">Location</span><select id="countLocation"></select></label><label><span data-work-en="Reason / discrepancy explanation" data-work-id="Alasan / penjelasan selisih">Reason / discrepancy explanation</span><input id="countReason" maxlength="1000" placeholder="Required when quantities differ"></label></div>
+        <div class="work-count-summary" id="countProgress" aria-live="polite"></div>
+        <div class="work-table-wrap count-table-wrap"><table class="work-table"><thead><tr><th data-work-en="Item" data-work-id="Barang">Item</th><th data-work-en="Location" data-work-id="Lokasi">Location</th><th class="num" data-work-en="Expected" data-work-id="Tercatat">Expected</th><th data-work-en="Counted" data-work-id="Terhitung">Counted</th><th class="num" data-work-en="Difference" data-work-id="Selisih">Difference</th></tr></thead><tbody id="countLines"></tbody></table></div>
+      </div>
+      <div id="countReview" hidden></div><p class="work-error" id="countError" role="alert" hidden></p>
+    </div>
+    <div class="modal-foot"><button class="btn-ghost" id="cancelCountModal" data-work-en="Cancel" data-work-id="Batal">Cancel</button><button class="btn-ghost" id="editCount" hidden data-work-en="Back to count" data-work-id="Kembali hitung">Back to count</button><button class="btn-amber" id="reviewCount" data-work-en="Review differences →" data-work-id="Tinjau selisih →">Review differences →</button><button class="btn-amber" id="saveCount" hidden data-work-en="Confirm stock count" data-work-id="Konfirmasi hitungan">Confirm stock count</button></div>
+  </div>
+</div>
+<div class="modal-backdrop" id="archiveModal">
+  <div class="modal work-modal"><div class="modal-head"><h3 id="archiveTitle">Archive item</h3><button class="close-x" id="closeArchiveModal" aria-label="Close">×</button></div><div class="modal-body"><div class="archive-item-name" id="archiveItemName"></div><p class="work-description" id="archiveExplanation"></p><label class="work-label"><span data-work-en="Note (optional)" data-work-id="Catatan (opsional)">Note (optional)</span><input id="archiveReason" maxlength="500" placeholder="Discontinued, duplicate, no longer used…"></label><p class="work-error" id="archiveError" role="alert" hidden></p></div><div class="modal-foot"><button class="btn-ghost" id="cancelArchiveModal" data-work-en="Cancel" data-work-id="Batal">Cancel</button><button class="btn-amber" id="confirmArchive">Archive item</button></div></div>
 </div>
 
 <!-- Item Transaction History Modal -->
@@ -1369,7 +1495,7 @@
       thLocContact: "Contact Person",
       thLocPhone: "Phone Number",
       thLocItems: "Items Stored",
-      footerNote: "Data is stored privately in Firebase Realtime Database and stays synced live across all devices. \"Export Save Data\" produces a ZIP containing complete JSON data and raw uncompressed images. \"Import Data\" can restore from either this ZIP or an Excel file.",
+      footerNote: "Check the cloud status before closing. Export Save Data creates a complete ZIP backup. Import accepts ZIP, JSON backups, and Excel reports. Excel reports do not contain photos; matching existing photos are preserved.",
       modalAddItemTitle: "Add new item",
       modalEditItemTitle: "Edit item",
       lblPhotoOpt: "Photo (optional)",
@@ -1533,7 +1659,7 @@
       thLocContact: "Kontak Person",
       thLocPhone: "Nomor Telepon",
       thLocItems: "Jumlah Barang Stored",
-      footerNote: "Data disimpan secara pribadi di Firebase Realtime Database dan tetap tersinkronisasi. \"Ekspor File Simpanan\" menghasilkan file ZIP berisi data JSON lengkap dan gambar. \"Impor Data\" dapat memulihkan dari ZIP ini atau file Excel.",
+      footerNote: "Periksa status cloud sebelum menutup. Ekspor File Simpanan membuat cadangan ZIP lengkap. Impor menerima ZIP, JSON, dan laporan Excel. Laporan Excel tidak berisi foto; foto lama yang cocok dipertahankan.",
       modalAddItemTitle: "Tambah Barang Baru",
       modalEditItemTitle: "Edit Barang",
       lblPhotoOpt: "Foto (opsional)",
@@ -1608,99 +1734,168 @@
     document.getElementById('logoutText').textContent = currentLang === 'en' ? 'Logout' : 'Keluar';
   }
 
-  // ---------- BROWSER & FIREBASE DISCONNECT DETECTORS ----------
-  window.addEventListener('offline', () => {
-    alert(currentLang === 'en' 
-      ? '⚠️ Internet connection cut off! Any edits made now cannot be uploaded to the server.' 
-      : '⚠️ Koneksi internet terputus! Perubahan yang dilakukan tidak dapat diunggah ke server.');
-    showToast(currentLang === 'en' ? '⚠️ You are offline.' : '⚠️ Anda sedang offline.', true);
-  });
-
-  window.addEventListener('online', () => {
-    showToast(currentLang === 'en' ? '🟢 Internet connection re-established.' : '🟢 Koneksi internet terhubung kembali.');
-  });
-
-  // ---------- FIREBASE REALTIME STORAGE WRAPPER ----------
-  let isInitialLoad = true;
-  let isFirebaseReady = false;
-
-  const storageApi = {
-    subscribeToChanges() {
-      db.ref('.info/connected').on('value', (snap) => {
-        if (snap.val() === false) {
-          showToast(currentLang === 'en' ? '⚠️ Disconnected from server database.' : '⚠️ Terputus dari database server.', true);
-        } else if (!isInitialLoad) {
-          showToast(currentLang === 'en' ? '🟢 Synced with server database.' : '🟢 Tersinkronisasi dengan database.');
-        }
+  // Keep the original RTDB schema. Compare-and-set prevents stale clients using
+  // this version from silently replacing a newer snapshot; no automatic merge.
+  let isInitialLoad = true, isFirebaseReady = false, connected = false;
+  let baseSnapshot = null, latestSnapshot = null, pendingSave = null, saving = false;
+  const clone = value => JSON.parse(JSON.stringify(value));
+  const dataKeys = ['items','stockIn','stockOut','vendors','locations','globalPricePerKg','globalPriceHistory','itemImages'];
+  function snapshotData(){return clone({items,stockIn,stockOut,vendors,locations,globalPricePerKg,globalPriceHistory,itemImages});}
+  function canonical(value){
+    if(value===null || value===undefined) return null;
+    if(typeof value!=='object') return value;
+    const result={};
+    Object.keys(value).sort().forEach(k=>{const v=canonical(value[k]);if(v!==null)result[k]=v;});
+    return Object.keys(result).length ? result : null;
+  }
+  function equivalent(a,b){return JSON.stringify(canonical(a))===JSON.stringify(canonical(b));}
+  function applyData(val){
+    items=(val.items||[]).map(it=>({code:'',purposes:[],locationId:'',maxStock:'',weightKg:0,category:'Plat',...it}));
+    stockIn=(val.stockIn||[]).map(x=>({receivedDate:x.receivedDate||x.orderedDate||'',notes:'',history:[],createdAt:0,...x}));
+    stockOut=(val.stockOut||[]).map(x=>({notes:'',history:[],createdAt:0,...x}));
+    vendors=(val.vendors||[]).map(v=>({contactName:'',phone:'',...v}));
+    locations=val.locations||[];globalPricePerKg=Number(val.globalPricePerKg||0);
+    globalPriceHistory=val.globalPriceHistory||[];itemImages=val.itemImages||{};
+  }
+  function draftKey(){return 'stock-monitor-draft:'+firebaseConfig.projectId+':'+(auth.currentUser?.uid||'');}
+  function persistDraft(){
+    try{localStorage.setItem(draftKey(),JSON.stringify({base:baseSnapshot,data:pendingSave}));}
+    catch(e){console.warn('Draft persistence unavailable:',e.message);showToast('Draft could not be stored on this device. Download it before closing. / Unduh draf sebelum menutup.',true);}
+  }
+  function setSync(state,detail=''){
+    const labels={loading:['Loading cloud data…','Memuat data cloud…'],saved:['Saved to cloud','Tersimpan di cloud'],saving:['Saving… Keep this page open.','Menyimpan… Jangan tutup halaman.'],offline:['Offline — editing paused','Offline — pengeditan dijeda'],failed:['Not saved — draft preserved','Belum tersimpan — draf dipertahankan'],conflict:['Cloud data changed — download your draft, then reload','Data cloud berubah — unduh draf, lalu muat ulang'],editing:['New cloud data available — finish or close this dialog','Data cloud baru tersedia — selesaikan atau tutup dialog']};
+    document.getElementById('syncLabel').textContent=(labels[state]||labels.failed)[currentLang==='id'?1:0]+(detail?' · '+detail:'');
+    document.getElementById('syncBar').dataset.state=state;
+    document.getElementById('retrySave').hidden=!pendingSave||saving;
+    document.getElementById('downloadDraft').hidden=!pendingSave;
+    document.getElementById('reloadCloud').hidden=!pendingSave||saving;
+  }
+  const storageApi={
+    subscribeToChanges(){
+      db.ref('.info/connected').on('value',snap=>{
+        connected=snap.val()===true;
+        setSync(pendingSave?(saving?'saving':'failed'):(!connected?'offline':isFirebaseReady?'saved':'loading'));
       });
-
-      db.ref('stock-monitor-data').on('value', (snapshot) => {
-        const val = snapshot.val() || {};
-        
-        items = (val.items || []).map(it => ({code:'', purposes:[], locationId:'', maxStock:'', weightKg:0, category:'Plat', ...it}));
-        stockIn = (val.stockIn || []).map(x => ({receivedDate: x.receivedDate || x.orderedDate || '', notes:'', history:[], createdAt: x.createdAt||0, ...x}));
-        stockOut = (val.stockOut || []).map(x => ({notes:'', history:[], createdAt: x.createdAt||0, ...x}));
-        vendors = (val.vendors || []).map(v => ({contactName:'', phone:'', ...v}));
-        locations = val.locations || [];
-        globalPricePerKg = Number(val.globalPricePerKg||0);
-        globalPriceHistory = val.globalPriceHistory || [];
-        itemImages = val.itemImages || {};
-
-        isFirebaseReady = true;
-
-        const activeModal = document.querySelector('.modal-backdrop.active');
-        if (!activeModal) {
-          renderAll();
+      db.ref('stock-monitor-data').on('value',snap=>{
+        latestSnapshot=clone(snap.val()||{});
+        if(pendingSave||saving)return;
+        if(isFirebaseReady && document.querySelector('.modal-backdrop.active')){setSync('editing');return;}
+        try{applyData(latestSnapshot);}catch(e){isFirebaseReady=false;setSync('failed','Invalid cloud data');return;}
+        baseSnapshot=clone(latestSnapshot);isFirebaseReady=true;renderAll();
+        setSync(connected?'saved':'offline');
+        if(isInitialLoad){
+          isInitialLoad=false;
+          try{
+            const draft=JSON.parse(localStorage.getItem(draftKey())||'null');
+            if(draft?.data){
+              pendingSave=draft.data;baseSnapshot=draft.base||{};setSync('failed','Recovered draft / Draf dipulihkan');
+            }
+          }catch(e){showToast('Unable to read stored draft.',true);}
         }
-        
-        if (!isInitialLoad) {
-          showToast(currentLang === 'en' ? 'Synced with live changes!' : 'Tersinkronisasi dengan data terbaru!');
-        }
-        isInitialLoad = false;
-      }, (error) => {
-        console.error("Firebase read failed: ", error);
-        showToast("Firebase database error: " + error.message, true);
-      });
+      },error=>{isFirebaseReady=false;setSync('failed',error.code||'Read denied');});
     },
-
-    unsubscribeFromChanges() {
-      db.ref('.info/connected').off();
-      db.ref('stock-monitor-data').off();
-    },
-
-    async saveAllData() {
-      if (!isFirebaseReady) return;
-
-      if (!navigator.onLine) {
-        const msg = currentLang === 'en' 
-          ? '⚠️ Data syncing failed! You are offline. Changes could not be uploaded.' 
-          : '⚠️ Gagal menyinkronkan data! Anda sedang offline. Perubahan tidak dapat diunggah.';
-        alert(msg);
-        showToast(msg, true);
-        return;
-      }
-
-      try {
-        await db.ref('stock-monitor-data').set({
-          items,
-          stockIn,
-          stockOut,
-          vendors,
-          locations,
-          globalPricePerKg,
-          globalPriceHistory,
-          itemImages
-        });
-      } catch (e) {
-        console.error('Firebase save error:', e);
-        const errMsg = currentLang === 'en' 
-          ? '❌ Sync failed! Internet connection issues prevented uploading changes to the server.' 
-          : '❌ Gagal menyinkronkan! Gangguan koneksi internet menghalangi pengunggahan perubahan ke server.';
-        alert(errMsg);
-        showToast(errMsg, true);
-      }
+    unsubscribeFromChanges(){db.ref('.info/connected').off();db.ref('stock-monitor-data').off();isInitialLoad=true;},
+    async saveAllData(){
+      if(saving||!pendingSave)return;
+      if(!isFirebaseReady||!connected||!auth.currentUser){setSync('failed');return;}
+      const intended=clone(pendingSave), expected=clone(baseSnapshot||{});
+      const userId=auth.currentUser.uid;
+      try{
+        validateData(intended);saving=true;setSync('saving');
+        const result=await db.ref('stock-monitor-data').transaction(current=>{
+          if(!equivalent(current||{},expected))return;
+          // Preserve unknown sibling fields from future versions.
+          return {...(current||{}),...intended};
+        },undefined,false);
+        if(auth.currentUser?.uid!==userId)return;
+        if(!result.committed){setSync('conflict');return;}
+        pendingSave=null;
+        try{localStorage.removeItem(draftKey());}catch(e){}
+        baseSnapshot=clone(result.snapshot.val()||{});latestSnapshot=clone(baseSnapshot);
+        applyData(baseSnapshot);renderAll();setSync('saved',new Date().toLocaleTimeString());
+      }catch(e){setSync('failed',e.code||e.message);}
+      finally{saving=false;document.getElementById('retrySave').hidden=!pendingSave;document.getElementById('reloadCloud').hidden=!pendingSave;}
     }
   };
+  window.addEventListener('offline',()=>{connected=false;setSync(pendingSave?'failed':'offline');});
+  window.addEventListener('beforeunload',e=>{if(pendingSave||saving){e.preventDefault();e.returnValue='';}});
+
+  function safeImage(value){return typeof value==='string' && /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=\r\n]+$/.test(value) ? value : '';}
+  function validateData(d){
+    const fail=msg=>{throw new Error(msg+' / Periksa data sebelum menyimpan.');};
+    if(!d||typeof d!=='object'||Array.isArray(d))fail('Invalid backup');
+    const idOK=id=>typeof id==='string' && /^[A-Za-z0-9_-]{1,100}$/.test(id);
+    const numberOK=v=>typeof v==='number'&&Number.isFinite(v)&&v>=0;
+    const dateOK=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&!isNaN(Date.parse(v))&&new Date(v+'T00:00:00Z').toISOString().slice(0,10)===v;
+    for(const key of ['items','stockIn','stockOut','vendors','locations']){
+      if(!Array.isArray(d[key])||d[key].length>100000)fail('Invalid '+key);
+      const ids=new Set();
+      for(const row of d[key]){
+        if(!row||!idOK(row.id)||ids.has(row.id))fail('Invalid or duplicate ID in '+key);
+        ids.add(row.id);
+        if(['items','vendors','locations'].includes(key)&& (typeof row.name!=='string'||!row.name.trim()))fail('Missing name in '+key);
+      }
+    }
+    const itemIds=new Set(d.items.map(it=>it.id)),locationIds=new Set(d.locations.map(l=>l.id));
+    const balances=new Map(d.items.map(it=>[it.id,0]));
+    for(const it of d.items){
+      if(it.archived!==undefined&&typeof it.archived!=='boolean')fail('Invalid archive flag');
+      if(it.archivedAt!==undefined&&!numberOK(it.archivedAt))fail('Invalid archive timestamp');
+      if(it.archiveHistory!==undefined&&!Array.isArray(it.archiveHistory))fail('Invalid archive history');
+      if(!numberOK(Number(it.weightKg||0))||!numberOK(Number(it.minStock||0))|| (it.maxStock!==''&&it.maxStock!=null&&(!numberOK(Number(it.maxStock))||Number(it.maxStock)<Number(it.minStock||0))))fail('Invalid weight or stock limits: '+it.name);
+      if(!Array.isArray(it.purposes||[])||(it.purposes||[]).some(p=>typeof p!=='string'))fail('Invalid tags');
+      if(it.locationId&&!locationIds.has(it.locationId))fail('Unknown location: '+it.name);
+    }
+    for(const key of ['stockIn','stockOut'])for(const row of d[key]){
+      if(!itemIds.has(row.itemId)||!numberOK(row.qty))fail('Invalid stock quantity or item reference');
+      if(!dateOK(key==='stockIn'?(row.receivedDate||row.orderedDate):row.date))fail('Invalid stock date');
+      balances.set(row.itemId,balances.get(row.itemId)+(key==='stockIn'?1:-1)*row.qty);
+      if(!Array.isArray(row.history||[]))fail('Invalid history');
+      if(row.kind!==undefined&&row.kind!==''&&row.kind!=='countAdjustment')fail('Unknown movement kind');
+      for(const field of ['batchId','countSessionId','createdByUid'])if(row[field]!==undefined&&!idOK(row[field]))fail('Invalid movement reference');
+      if(row.kind==='countAdjustment'){
+        if(!idOK(row.countSessionId)||!idOK(row.createdByUid)||!numberOK(row.countExpected)||!numberOK(row.countActual)||!numberOK(row.createdAt)||typeof row.countReason!=='string'||!row.countReason.trim())fail('Incomplete stock count record');
+        const delta=row.countActual-row.countExpected;
+        if(Math.abs(Math.abs(delta)-row.qty)>1e-8||(key==='stockIn'?delta<0:delta>=0))fail('Stock count movement does not match the recorded difference');
+      }
+    }
+    if([...balances.values()].some(n=>n < -1e-8))fail('This change would leave negative stock');
+    for(const it of d.items)if(it.archived&&Math.abs(balances.get(it.id))>1e-8)fail('Archived items must have zero stock: '+it.name);
+    if(!numberOK(d.globalPricePerKg)||!Array.isArray(d.globalPriceHistory))fail('Invalid pricing');
+    if(!d.itemImages||typeof d.itemImages!=='object'||Array.isArray(d.itemImages))fail('Invalid images');
+    for(const [id,img] of Object.entries(d.itemImages))if(!idOK(id)||!itemIds.has(id)||!safeImage(img)||img.length>12*1024*1024)fail('Invalid or oversized photo');
+    function walk(value,depth=0){
+      if(depth>20)fail('Data is nested too deeply');
+      if(typeof value==='string'&&value.length>12*1024*1024)fail('Text is too large');
+      if(typeof value==='number'&&!Number.isFinite(value))fail('Invalid number');
+      if(value&&typeof value==='object')for(const [key,v] of Object.entries(value)){
+        if(['__proto__','prototype','constructor'].includes(key)||/[.#$\[\]/]/.test(key))fail('Invalid field name');
+        walk(v,depth+1);
+      }
+    }
+    walk(d);
+    if(new Blob([JSON.stringify(d,null,2)]).size>40*1024*1024)fail('Backup exceeds the 40 MB safety limit');
+    return d;
+  }
+  function downloadBackup(data,label='backup'){
+    saveAs(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),`Stock_Monitor_${label}_${todayISO()}_${Date.now()}.json`);
+  }
+  function confirmRemoval(){
+    if(!confirm(currentLang==='id'?'Hapus catatan ini? Cadangan pemulihan akan diunduh terlebih dahulu.':'Delete this entry? A recovery backup will download first.'))return false;
+    downloadBackup(snapshotData(),'before-delete');return true;
+  }
+  async function resizePhoto(file){
+    if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>10*1024*1024)throw new Error('Use a JPEG, PNG or WebP photo under 10 MB');
+    const url=URL.createObjectURL(file);
+    try{
+      const img=new Image();img.src=url;await img.decode();
+      if(img.width*img.height>40000000)throw new Error('Image dimensions are too large');
+      const scale=Math.min(1,1280/Math.max(img.width,img.height)),canvas=document.createElement('canvas');
+      canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));
+      const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      return canvas.toDataURL('image/jpeg',0.82);
+    }finally{URL.revokeObjectURL(url);}
+  }
 
   // ---------- state ----------
   let items = [];         
@@ -1712,7 +1907,7 @@
   let globalPricePerKg = 0;
   let globalPriceHistory = []; 
 
-  let invSortDirection = 'none'; 
+
   let selectedTagFilter = '';
 
   let siSelectedItemId = '';
@@ -1734,7 +1929,8 @@
   const fmtInt = n => Number(n||0).toLocaleString('en-US');
   const fmtRp = n => 'Rp ' + Number(n||0).toLocaleString('en-US', {maximumFractionDigits:0});
   const fmtKg = n => Number(n||0).toLocaleString('en-US', {maximumFractionDigits:2}) + ' kg';
-  const todayISO = () => new Date().toISOString().slice(0,10);
+  const localISO = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const todayISO = () => localISO(new Date());
   const monthOf = d => (d && d.length>=7) ? d.slice(0,7) : '';
   const nowStamp = () => new Date().toLocaleString('en-US', {month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit'});
 
@@ -1788,12 +1984,18 @@
 
   let saveTimer = null;
   function saveData(){
+    pendingSave = snapshotData();
+    try { validateData(pendingSave); }
+    catch(e) {
+      pendingSave = null;
+      applyData(baseSnapshot || {}); renderAll();
+      alert(e.message); return;
+    }
+    persistDraft();
     renderAll();
-
+    setSync('saving');
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
-      storageApi.saveAllData();
-    }, 200);
+    saveTimer = setTimeout(() => storageApi.saveAllData(), 200);
   }
 
   document.getElementById('langToggle').addEventListener('click', ()=>{
@@ -1838,6 +2040,8 @@
 
       isSubscribed = false;
       isFirebaseReady = false;
+      clearTimeout(saveTimer); pendingSave = null; baseSnapshot = null; latestSnapshot = null;
+      setSync('loading');
       
       items = []; 
       stockIn = []; 
@@ -1865,7 +2069,7 @@
     }
 
     auth.signInWithEmailAndPassword(email, pwd).catch(error => {
-      err.textContent = "✖ " + error.message;
+      err.textContent = "Sign-in failed. Check your credentials and connection, then try again.";
       err.style.display = 'block';
     });
   });
@@ -1890,19 +2094,20 @@
   function itemStats(item){
     const ins = stockIn.filter(x => x.itemId === item.id);
     const outs = stockOut.filter(x => x.itemId === item.id);
-    const purchased = ins.reduce((s,x)=>s+Number(x.qty||0),0);
+    const purchased = ins.filter(x=>!isCountAdjustment(x)).reduce((s,x)=>s+Number(x.qty||0),0);
     const totalWeight = purchased * Number(item.weightKg||0);
     const totalCost = totalWeight * Number(globalPricePerKg||0);
-    const avgCost = purchased > 0 ? totalCost/purchased : 0;
-    const sold = outs.reduce((s,x)=>s+Number(x.qty||0),0);
-    const onHand = purchased - sold;
+    const avgCost = Number(item.weightKg||0)*Number(globalPricePerKg||0);
+    const sold = outs.filter(x=>!isCountAdjustment(x)).reduce((s,x)=>s+Number(x.qty||0),0);
+    const adjustment = ins.filter(isCountAdjustment).reduce((sum,x)=>sum+Number(x.qty||0),0)-outs.filter(isCountAdjustment).reduce((sum,x)=>sum+Number(x.qty||0),0);
+    const onHand = stockNumber(purchased - sold + adjustment);
     const invValue = onHand * avgCost;
     let status = 'In Stock';
     const maxStock = item.maxStock===''||item.maxStock==null ? null : Number(item.maxStock);
     if(maxStock!=null && onHand > maxStock) status = 'Overstocked';
     else if(onHand <= 0) status = 'Out of Stock';
     else if(onHand <= Number(item.minStock||0)) status = 'Low Stock';
-    return {purchased, totalWeight, totalCost, avgCost, sold, onHand, invValue, status};
+    return {purchased, totalWeight, totalCost, avgCost, sold, onHand, adjustment, invValue, status};
   }
   function firstInDate(itemId){
     const ins = stockIn.filter(x=>x.itemId===itemId);
@@ -1916,6 +2121,7 @@
   let toastTimer=null;
   function showToast(msg, isError){
     const t = document.getElementById('toast');
+    if (pendingSave && !isError) return;
     t.textContent = msg;
     t.className = 'toast show' + (isError ? ' error' : '');
     clearTimeout(toastTimer);
@@ -1947,6 +2153,7 @@
     function optionsFor(filter){
       const f = (filter||'').toLowerCase();
       return items
+        .filter(it => inputId==='analyticsItemSearch' || !it.archived)
         .filter(it => !f || it.name.toLowerCase().includes(f) || (it.code||'').toLowerCase().includes(f) || (it.purposes||[]).some(p=>p.toLowerCase().includes(f)) || (it.category||'').toLowerCase().includes(f))
         .sort((a,b)=>a.name.localeCompare(b.name))
         .slice(0,60);
@@ -1959,7 +2166,7 @@
         menu.innerHTML = opts.map(it=>{
           const tagStr = (it.purposes||[]).slice(0,3).join(', ');
           const codePrefix = it.code ? `[${escapeHtml(it.code)}] ` : '';
-          return `<div class="combo-option" data-id="${it.id}">${codePrefix}${escapeHtml(it.name)}${tagStr? ' <span class="combo-meta">('+escapeHtml(tagStr)+')</span>':''}</div>`;
+          return `<div class="combo-option" data-id="${escapeHtml(it.id)}">${codePrefix}${escapeHtml(it.name)}${tagStr? ' <span class="combo-meta">('+escapeHtml(tagStr)+')</span>':''}</div>`;
         }).join('');
       }
       menu.classList.add('open');
@@ -2085,7 +2292,7 @@
 
   function wireItemPhotoHover(container){
     container.querySelectorAll('[data-img-id]').forEach(el=>{
-      const src = itemImages[el.getAttribute('data-img-id')];
+      const src = safeImage(itemImages[el.getAttribute('data-img-id')]);
       if(!src) return;
       el.classList.add('has-photo');
       el.addEventListener('mouseenter', ()=>showFloatPreview(el, src));
@@ -2102,10 +2309,10 @@
     const el = document.getElementById('trendChart');
     const months = [];
     const base = new Date();
-    for(let i=5;i>=0;i--){ const d = new Date(base.getFullYear(), base.getMonth()-i, 1); months.push(d.toISOString().slice(0,7)); }
+    for(let i=5;i>=0;i--){ const d = new Date(base.getFullYear(), base.getMonth()-i, 1); months.push(localISO(d).slice(0,7)); }
     const data = months.map(m=>{
-      const inQty = stockIn.filter(x=>monthOf(x.receivedDate)===m).reduce((s,x)=>s+Number(x.qty||0),0);
-      const outQty = stockOut.filter(x=>monthOf(x.date)===m).reduce((s,x)=>s+Number(x.qty||0),0);
+      const inQty = stockIn.filter(x=>!isCountAdjustment(x)&&monthOf(x.receivedDate)===m).reduce((s,x)=>s+Number(x.qty||0),0);
+      const outQty = stockOut.filter(x=>!isCountAdjustment(x)&&monthOf(x.date)===m).reduce((s,x)=>s+Number(x.qty||0),0);
       return {m, inQty, outQty};
     });
     const max = Math.max(1, ...data.map(d=>Math.max(d.inQty,d.outQty)));
@@ -2142,7 +2349,7 @@
   function renderCategoryChart(){
     const el = document.getElementById('categoryChart');
     const byCat = {};
-    items.forEach(it=>{
+    activeItems().forEach(it=>{
       const s = itemStats(it);
       const cat = it.category || 'Uncategorized';
       byCat[cat] = (byCat[cat]||0) + s.invValue;
@@ -2164,8 +2371,8 @@
 
   // ---------- dashboard ----------
   function renderDashboard(){
-    const stats = items.map(it => ({item: it, s: itemStats(it)}));
-    const totalItems = items.length;
+    const stats = activeItems().map(it => ({item: it, s: itemStats(it)}));
+    const totalItems = activeItems().length;
     const totalOnHand = stats.reduce((s,x)=>s+x.s.onHand,0);
     const totalValue = stats.reduce((s,x)=>s+x.s.invValue,0);
     const lowCount = stats.filter(x=>x.s.status==='Low Stock').length;
@@ -2217,8 +2424,8 @@
     const toM = toInput.value || '9999-99';
 
     return [
-      ...stockIn.map(x=>({date:x.receivedDate, type:'Stock In', itemId:x.itemId, vendor:x.vendor||'—', qty:x.qty, createdAt: x.createdAt||0})),
-      ...stockOut.map(x=>({date:x.date, type:'Stock Out', itemId:x.itemId, vendor:'—', qty:x.qty, createdAt: x.createdAt||0}))
+      ...stockIn.map(x=>({date:x.receivedDate, kind:x.kind||'', type:'Stock In', itemId:x.itemId, vendor:x.vendor||'—', qty:x.qty, createdAt: x.createdAt||0})),
+      ...stockOut.map(x=>({date:x.date, kind:x.kind||'', type:'Stock Out', itemId:x.itemId, vendor:'—', qty:x.qty, createdAt: x.createdAt||0}))
     ].filter(a=>{
       const m = monthOf(a.date);
       return m && m >= fromM && m <= toM;
@@ -2245,9 +2452,9 @@
       const it = items.find(i=>i.id===a.itemId);
       const actTime = formatDateTime(a.createdAt);
       return `<tr>
-        <td>${actTime}</td>
-        <td>${a.date || '—'}</td>
-        <td>${a.type==='Stock In' ? '<span class="badge in">IN</span>' : '<span class="badge out">OUT</span>'}</td>
+        <td data-sort-value="${Number(a.createdAt)||''}">${actTime}</td>
+        <td>${escapeHtml(a.date || '—')}</td>
+        <td>${isCountAdjustment(a) ? '<span class="count-label">COUNT</span>' : a.type==='Stock In' ? '<span class="badge in">IN</span>' : '<span class="badge out">OUT</span>'}</td>
         <td>${escapeHtml(it? it.code||'—' : '—')}</td>
         <td>${escapeHtml(it? it.name : (currentLang==='en'?'Unknown item':'Barang tidak dikenal'))}</td>
         <td>${escapeHtml(a.vendor)}</td>
@@ -2338,8 +2545,8 @@
       const actTime = formatDateTime(a.createdAt);
       return `<tr>
         <td style="white-space:nowrap; width:135px;">${actTime}</td>
-        <td style="white-space:nowrap; width:80px;">${a.date || '—'}</td>
-        <td style="text-align:center; width:55px;"><span class="print-badge">[ ${a.type==='Stock In' ? 'IN' : 'OUT'} ]</span></td>
+        <td style="white-space:nowrap; width:80px;">${escapeHtml(a.date || '—')}</td>
+        <td style="text-align:center; width:55px;"><span class="print-badge">[ ${isCountAdjustment(a) ? '<span class="count-label">COUNT</span>' : a.type==='Stock In' ? 'IN' : 'OUT'} ]</span></td>
         <td style="width:100px;"><strong>${escapeHtml(it ? it.code || '—' : '—')}</strong></td>
         <td>${escapeHtml(it ? it.name : 'Unknown Item')}</td>
         <td>${escapeHtml(a.vendor)}</td>
@@ -2519,6 +2726,7 @@
 
     const totals = {};
     stockOut.filter(x=>{
+      if(isCountAdjustment(x))return false;
       const m = monthOf(x.date);
       return m && m >= fromM && m <= toM;
     }).forEach(x=>{ totals[x.itemId] = (totals[x.itemId]||0) + Number(x.qty||0); });
@@ -2547,7 +2755,9 @@
     const box = document.getElementById('itemPhotoPreviewBox');
     const removeBtn = document.getElementById('itemPhotoRemove');
     if(dataUrl){
-      box.innerHTML = `<img src="${dataUrl}" alt="preview">`;
+      const image = document.createElement('img');
+      image.src = safeImage(dataUrl); image.alt = 'Item photo';
+      box.replaceChildren(image);
       removeBtn.style.display='';
     }else{
       box.innerHTML = `<span class="ph-empty">${t('phNoPhoto')}</span>`;
@@ -2558,7 +2768,7 @@
     const file = e.target.files[0];
     if(!file) return;
     try{
-      const dataUrl = await readFileAsDataURL(file);
+      const dataUrl = await resizePhoto(file);
       itemPhotoTemp = dataUrl;
       itemPhotoChanged = true;
       setPhotoPreview(dataUrl);
@@ -2582,6 +2792,8 @@
     const tagFilter = selectedTagFilter.trim().toLowerCase();
 
     let rows = items.filter(it=>{
+      const lifecycle=document.getElementById('invLifecycleFilter').value;
+      if(lifecycle==='active'&&it.archived||lifecycle==='archived'&&!it.archived)return false;
       const s = itemStats(it);
       if(catFilter && it.category !== catFilter) return false;
       if(tagFilter && !(it.purposes||[]).some(p=>p.toLowerCase()===tagFilter)) return false;
@@ -2595,13 +2807,7 @@
       return true;
     });
 
-    if(invSortDirection==='desc'){
-      rows.sort((a,b) => itemStats(b).invValue - itemStats(a).invValue);
-    } else if(invSortDirection==='asc'){
-      rows.sort((a,b) => itemStats(a).invValue - itemStats(b).invValue);
-    } else {
-      rows.sort((a,b) => a.name.localeCompare(b.name));
-    }
+    rows.sort((a,b)=>a.name.localeCompare(b.name));
     return rows;
   }
 
@@ -2616,13 +2822,8 @@
     const curLoc = locSel.value;
     locSel.innerHTML = `<option value="">${t('optAllLocations')}</option>` +
       `<option value="__unassigned__">${t('optUnassignedLoc')}</option>` +
-      locations.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(l=>`<option value="${l.id}">${escapeHtml(l.name)}</option>`).join('');
+      locations.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(l=>`<option value="${escapeHtml(l.id)}">${escapeHtml(l.name)}</option>`).join('');
     if(curLoc) locSel.value = curLoc;
-
-    const sortIcon = document.getElementById('invValueSortIcon');
-    if(invSortDirection==='desc') sortIcon.textContent = '▼';
-    else if(invSortDirection==='asc') sortIcon.textContent = '▲';
-    else sortIcon.textContent = '⇅';
 
     const rows = getFilteredItems();
 
@@ -2640,28 +2841,28 @@
         const fullBadges = it.purposes.map(p => `<span class="tag-badge">${escapeHtml(p)}</span>`).join('');
         tags = `
           <div class="tags-hover-container">
-            <span class="tags-dots-badge">...</span>
+            <button type="button" class="tags-dots-badge" aria-label="Show tags" aria-expanded="false">…</button>
             <div class="tags-tooltip">${fullBadges}</div>
           </div>
         `;
       }
 
       const img = itemImages[it.id];
-      const nameCell = `<span class="item-hover" data-img-id="${it.id}">${escapeHtml(it.name)}${img?' <span class="cam">📷</span>':''}</span>`;
+      const nameCell = `<span class="item-hover" data-img-id="${escapeHtml(it.id)}">${escapeHtml(it.name)}${it.archived?'<span class="archive-badge">Archived</span>':''}${img?' <span class="cam">📷</span>':''}</span>`;
       
       const locOptions = `<option value="">${t('optUnassignedLoc')}</option>` +
-        locations.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(l => `<option value="${l.id}" ${it.locationId===l.id?'selected':''}>${escapeHtml(l.name)}</option>`).join('');
+        locations.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(l => `<option value="${escapeHtml(l.id)}" ${it.locationId===l.id?'selected':''}>${escapeHtml(l.name)}</option>`).join('');
 
-      return `<tr>
+      return `<tr class="${it.archived?'archive-row':''}">
         <td><strong>${escapeHtml(it.code||'—')}</strong></td>
         <td>
           <div style="display:flex; align-items:center; gap:4px;">
-            <button class="btn-view-hist" data-view-hist="${it.id}" title="${currentLang==='en'?'View Stock History':'Lihat Riwayat Stok'}">🔍</button>
+            <button class="btn-view-hist" data-view-hist="${escapeHtml(it.id)}" title="${currentLang==='en'?'View Stock History':'Lihat Riwayat Stok'}">🔍</button>
             ${nameCell}
           </div>
         </td>
         <td>
-          <select class="inline-loc-select" data-item-loc="${it.id}">
+          <select class="inline-loc-select" data-item-loc="${escapeHtml(it.id)}" ${it.archived?'disabled':''}>
             ${locOptions}
           </select>
         </td>
@@ -2669,16 +2870,16 @@
         <td>${escapeHtml(it.category||'—')}</td>
         <td class="num">${fmtInt(s.purchased)}</td>
         <td class="num">${fmtInt(s.sold)}</td>
-        <td class="num">${fmtInt(s.onHand)}</td>
+        <td class="num" data-sort-value="${s.onHand}" title="${escapeHtml(workText('Net count adjustment: ','Penyesuaian hitung: ')+fmtInt(s.adjustment))}">${fmtInt(s.onHand)}${s.adjustment?'<small class="count-label" style="display:block">'+workText('adjusted','disesuaikan')+'</small>':''}</td>
         <td class="num">${fmtInt(it.minStock)}</td>
         <td class="num">${it.maxStock===''||it.maxStock==null?'—':fmtInt(it.maxStock)}</td>
-        <td class="num">${fmtRp(s.avgCost)}</td>
-        <td class="num">${fmtRp(s.invValue)}</td>
+        <td class="num" data-sort-value="${Number(s.avgCost)}">${fmtRp(s.avgCost)}</td>
+        <td class="num" data-sort-value="${Number(s.invValue)}">${fmtRp(s.invValue)}</td>
         <td>${statusBadge(s.status)}</td>
         <td>
           <div class="row-actions">
-            <button class="btn-edit" data-edit-item="${it.id}" title="${currentLang==='en'?'Edit Item':'Edit Barang'}">✎</button>
-            <button class="btn-danger" data-del-item="${it.id}" title="${currentLang==='en'?'Delete Item':'Hapus Barang'}">✖</button>
+            <button class="btn-edit" data-edit-item="${escapeHtml(it.id)}" title="${currentLang==='en'?'Edit Item':'Edit Barang'}">✎</button>
+            <button class="btn-archive" data-archive-item="${escapeHtml(it.id)}" title="${it.archived?workText('Restore item','Pulihkan barang'):workText('Archive item','Arsipkan barang')}" aria-label="${it.archived?'Restore item':'Archive item'}">${it.archived?'↶':'▣'}</button>
           </div>
         </td>
       </tr>`;
@@ -2717,6 +2918,7 @@
         const userInput = prompt(promptMsg);
 
         if (userInput === "CONFIRM DELETE") {
+          downloadBackup(snapshotData(), "before-delete");
           items = items.filter(i=>i.id!==id);
           stockIn = stockIn.filter(x=>x.itemId!==id);
           stockOut = stockOut.filter(x=>x.itemId!==id);
@@ -2757,7 +2959,7 @@
       vendorOrKegunaan: x.vendor || '—',
       qty: x.qty,
       notes: x.notes || '',
-      createdAt: x.createdAt || 0
+      kind:x.kind||'', createdAt: x.createdAt || 0
     }));
 
     const outs = stockOut.filter(x => x.itemId === itemId).map(x => ({
@@ -2766,7 +2968,7 @@
       vendorOrKegunaan: x.kegunaan || '—',
       qty: x.qty,
       notes: x.notes || '',
-      createdAt: x.createdAt || 0
+      kind:x.kind||'', createdAt: x.createdAt || 0
     }));
 
     const historyLogs = [...ins, ...outs].sort((a,b) => {
@@ -2780,8 +2982,8 @@
     } else {
       body.innerHTML = historyLogs.map(l => `
         <tr>
-          <td>${l.date || '—'}</td>
-          <td>${l.type === 'Stock In' ? '<span class="badge in">IN</span>' : '<span class="badge out">OUT</span>'}</td>
+          <td>${escapeHtml(l.date || '—')}</td>
+          <td>${isCountAdjustment(l) ? '<span class="count-label">COUNT</span>' : l.type === 'Stock In' ? '<span class="badge in">IN</span>' : '<span class="badge out">OUT</span>'}</td>
           <td>${escapeHtml(l.vendorOrKegunaan)}</td>
           <td class="num">${fmtInt(l.qty)}</td>
           <td>${l.notes ? `<span class="note-preview" title="${escapeHtml(l.notes)}">${escapeHtml(l.notes)}</span>` : '—'}</td>
@@ -2856,8 +3058,8 @@
     const insInRange = stockIn.filter(x => x.itemId === item.id && monthOf(x.receivedDate) >= fromM && monthOf(x.receivedDate) <= toM);
     const outsInRange = stockOut.filter(x => x.itemId === item.id && monthOf(x.date) >= fromM && monthOf(x.date) <= toM);
 
-    const totalIn = insInRange.reduce((s, x) => s + Number(x.qty||0), 0);
-    const totalOut = outsInRange.reduce((s, x) => s + Number(x.qty||0), 0);
+    const totalIn = insInRange.filter(x=>!isCountAdjustment(x)).reduce((s, x) => s + Number(x.qty||0), 0);
+    const totalOut = outsInRange.filter(x=>!isCountAdjustment(x)).reduce((s, x) => s + Number(x.qty||0), 0);
     const monthlyRate = Math.round((totalOut / numMonths) * 10) / 10;
 
     const totalInUpTo = stockIn.filter(x => x.itemId === item.id && monthOf(x.receivedDate) <= toM).reduce((s, x) => s + Number(x.qty||0), 0);
@@ -2876,8 +3078,8 @@
     document.getElementById('analyticsChartTitle').textContent = `${currentLang==='en'?'Monthly Usage & Order Flow':'Penggunaan & Pesanan Bulanan'} (${fromM} ~ ${toM})`;
     renderAnalyticsChart(item.id, months);
 
-    const ins = insInRange.map(x => ({ date: x.receivedDate||'', type: 'Stock In', vendorOrKegunaan: x.vendor||'—', qty: x.qty, notes: x.notes||'', createdAt: x.createdAt||0 }));
-    const outs = outsInRange.map(x => ({ date: x.date||'', type: 'Stock Out', vendorOrKegunaan: x.kegunaan||'—', qty: x.qty, notes: x.notes||'', createdAt: x.createdAt||0 }));
+    const ins = insInRange.map(x => ({ date: x.receivedDate||'', type: 'Stock In', vendorOrKegunaan: x.vendor||'—', qty: x.qty, notes: x.notes||'', kind:x.kind||'', createdAt: x.createdAt||0 }));
+    const outs = outsInRange.map(x => ({ date: x.date||'', type: 'Stock Out', vendorOrKegunaan: x.kegunaan||'—', qty: x.qty, notes: x.notes||'', kind:x.kind||'', createdAt: x.createdAt||0 }));
     const txs = [...ins, ...outs].sort((a,b) => {
       if((b.createdAt||0) !== (a.createdAt||0)) return (b.createdAt||0) - (a.createdAt||0);
       return (b.date||'').localeCompare(a.date||'');
@@ -2889,8 +3091,8 @@
     } else {
       txBody.innerHTML = txs.map(t => `
         <tr>
-          <td>${t.date||'—'}</td>
-          <td>${t.type === 'Stock In' ? '<span class="badge in">IN</span>' : '<span class="badge out">OUT</span>'}</td>
+          <td>${escapeHtml(t.date||'—')}</td>
+          <td>${isCountAdjustment(t) ? '<span class="count-label">COUNT</span>' : t.type === 'Stock In' ? '<span class="badge in">IN</span>' : '<span class="badge out">OUT</span>'}</td>
           <td>${escapeHtml(t.vendorOrKegunaan)}</td>
           <td class="num">${fmtInt(t.qty)}</td>
           <td>${t.notes ? `<span class="note-preview" title="${escapeHtml(t.notes)}">${escapeHtml(t.notes)}</span>` : '—'}</td>
@@ -2910,8 +3112,8 @@
     }
 
     const data = months.map(m => {
-      const inQty = stockIn.filter(x => x.itemId === itemId && monthOf(x.receivedDate) === m).reduce((s,x) => s + Number(x.qty||0), 0);
-      const outQty = stockOut.filter(x => x.itemId === itemId && monthOf(x.date) === m).reduce((s,x) => s + Number(x.qty||0), 0);
+      const inQty = stockIn.filter(x => !isCountAdjustment(x)&&x.itemId === itemId && monthOf(x.receivedDate) === m).reduce((s,x) => s + Number(x.qty||0), 0);
+      const outQty = stockOut.filter(x => !isCountAdjustment(x)&&x.itemId === itemId && monthOf(x.date) === m).reduce((s,x) => s + Number(x.qty||0), 0);
       return { m, inQty, outQty };
     });
 
@@ -2951,12 +3153,6 @@
     el.innerHTML = svgEl(W, H, bars);
   }
 
-  document.getElementById('thInvValueSort').addEventListener('click', ()=>{
-    if(invSortDirection==='none' || invSortDirection==='asc') invSortDirection = 'desc';
-    else if(invSortDirection==='desc') invSortDirection = 'asc';
-    renderInventory();
-  });
-
   document.getElementById('invSearch').addEventListener('input', renderInventory);
   document.getElementById('invCategoryFilter').addEventListener('change', renderInventory);
   document.getElementById('invLocationFilter').addEventListener('change', renderInventory);
@@ -2985,13 +3181,14 @@
     const sel = document.getElementById(selId);
     if(!sel) return;
     sel.innerHTML = `<option value="">${t('selectLocDefault')}</option>` +
-      locations.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(l=>`<option value="${l.id}">${escapeHtml(l.name)}</option>`).join('');
+      locations.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(l=>`<option value="${escapeHtml(l.id)}">${escapeHtml(l.name)}</option>`).join('');
     if(selectedId) sel.value = selectedId;
   }
 
   // ---------- item add/edit modal ----------
   const itemModal = document.getElementById('itemModal');
   function openItemModal(mode, itemId){
+    if(items.find(it=>it.id===itemId)?.archived){showToast(workText('Restore this item before editing.','Pulihkan barang sebelum mengedit.'),true);return;}
     document.getElementById('itemError').style.display='none';
     const editNote = document.getElementById('itemEditNote');
     itemPhotoChanged = false;
@@ -3054,6 +3251,12 @@
     const itemWeight = Number(document.getElementById('itemInitWeight').value)||0;
     const newInitQty = Number(document.getElementById('itemInitQty').value)||0;
     const userEmail = getCurrentUserEmail();
+    const numericValues=[minStock,itemWeight,newInitQty];
+    if(numericValues.some(v=>!Number.isFinite(v)||v<0)||(maxStock!==''&&(!Number.isFinite(maxStock)||maxStock<minStock))){
+      err.textContent='Use non-negative quantities and a maximum at least equal to the minimum. / Periksa jumlah dan batas stok.';err.style.display='block';return;
+    }
+    if(editingItemId){const existing=items.find(i=>i.id===editingItemId);const ob=openingBalanceEntry(editingItemId);
+      if(!existing||itemStats(existing).onHand-Number(ob?.qty||0)+newInitQty<0){err.textContent='Opening balance would leave negative stock. / Stok akan menjadi negatif.';err.style.display='block';return;}}
     err.style.display='none';
 
     let targetId = editingItemId;
@@ -3099,7 +3302,7 @@
     const body = document.getElementById('priceHistoryBody');
     const rows = globalPriceHistory.slice().reverse();
     if(!rows.length){ body.innerHTML = `<tr class="empty-row"><td colspan="4">${currentLang==='en'?'No price changes recorded yet.':'Belum ada riwayat perubahan harga.'}</td></tr>`; return; }
-    body.innerHTML = rows.map(h=>`<tr><td>${escapeHtml(h.ts)}</td><td class="num">${fmtRp(h.oldPrice)}</td><td class="num">${fmtRp(h.newPrice)}</td><td>${escapeHtml(h.by||'System')}</td></tr>`).join('');
+    body.innerHTML = rows.map(h=>`<tr><td>${escapeHtml(h.ts)}</td><td class="num" data-sort-value="${Number(h.oldPrice)}">${fmtRp(h.oldPrice)}</td><td class="num" data-sort-value="${Number(h.newPrice)}">${fmtRp(h.newPrice)}</td><td>${escapeHtml(h.by||'System')}</td></tr>`).join('');
   }
   document.getElementById('saveGlobalPrice').addEventListener('click', ()=>{
     const err = document.getElementById('globalPriceError');
@@ -3166,8 +3369,8 @@
         <td class="num">${fmtInt(itemCount)}</td>
         <td>
           <div class="row-actions">
-            <button class="btn-edit" data-edit-loc="${l.id}" title="${currentLang==='en'?'Edit Location':'Edit Lokasi'}">✎</button>
-            <button class="btn-danger" data-del-loc="${l.id}" title="${currentLang==='en'?'Delete Location':'Hapus Lokasi'}">✖</button>
+            <button class="btn-edit" data-edit-loc="${escapeHtml(l.id)}" title="${currentLang==='en'?'Edit Location':'Edit Lokasi'}">✎</button>
+            <button class="btn-danger" data-del-loc="${escapeHtml(l.id)}" title="${currentLang==='en'?'Delete Location':'Hapus Lokasi'}">✖</button>
           </div>
         </td>
       </tr>`;
@@ -3263,7 +3466,7 @@
     const rows = vendors.slice().sort((a,b)=>a.name.localeCompare(b.name));
     if(!rows.length){ body.innerHTML = `<tr class="empty-row"><td colspan="5">${currentLang==='en'?'No vendors yet — add one above.':'Belum ada pemasok — tambah di atas.'}</td></tr>`; return; }
     body.innerHTML = rows.map(v=>{
-      const count = stockIn.filter(x=>x.vendor===v.name).length;
+      const count = stockIn.filter(x=>!isCountAdjustment(x)&&x.vendor===v.name).length;
       return `<tr>
         <td><strong>${escapeHtml(v.name)}</strong></td>
         <td>${escapeHtml(v.contactName||'—')}</td>
@@ -3271,8 +3474,8 @@
         <td class="num">${fmtInt(count)}</td>
         <td>
           <div class="row-actions">
-            <button class="btn-edit" data-edit-vendor="${v.id}" title="${currentLang==='en'?'Edit Vendor':'Edit Pemasok'}">✎</button>
-            <button class="btn-danger" data-del-vendor="${v.id}" title="${currentLang==='en'?'Delete Vendor':'Hapus Pemasok'}">✖</button>
+            <button class="btn-edit" data-edit-vendor="${escapeHtml(v.id)}" title="${currentLang==='en'?'Edit Vendor':'Edit Pemasok'}">✎</button>
+            <button class="btn-danger" data-del-vendor="${escapeHtml(v.id)}" title="${currentLang==='en'?'Delete Vendor':'Hapus Pemasok'}">✖</button>
           </div>
         </td>
       </tr>`;
@@ -3376,20 +3579,26 @@
         <td>${escapeHtml(it? it.category : '—')}</td>
         <td>${escapeHtml(x.vendor||'—')}</td>
         <td>${escapeHtml(x.orderNo||'—')}</td>
-        <td>${x.receivedDate||'—'}</td>
+        <td>${escapeHtml(x.receivedDate||'—')}</td>
         <td class="num">${fmtInt(x.qty)}</td>
-        <td class="num">${fmtRp(cost)}</td>
+        <td class="num" data-sort-value="${Number(cost)}">${fmtRp(cost)}</td>
         <td>${x.notes? `<span class="note-preview" title="${escapeHtml(x.notes)}">${escapeHtml(x.notes)}</span>` : '—'}</td>
         <td>
           <div class="row-actions">
-            <button class="btn-edit" data-edit-in="${x.id}" title="${currentLang==='en'?'Edit Entry':'Edit Catatan'}">✎</button>
-            <button class="btn-danger" data-del-in="${x.id}" title="${currentLang==='en'?'Delete Entry':'Hapus Catatan'}">✖</button>
+            ${isCountAdjustment(x)?'<span class="count-label">'+workText('Stock count','Hitung stok')+'</span>':`<button class="btn-edit" data-edit-in="${escapeHtml(x.id)}" title="${currentLang==='en'?'Edit Entry':'Edit Catatan'}">✎</button>
+            <button class="btn-danger" data-del-in="${escapeHtml(x.id)}" title="${currentLang==='en'?'Delete Entry':'Hapus Catatan'}">✖</button>`}
           </div>
         </td>
       </tr>`;
     }).join('');
     body.querySelectorAll('[data-del-in]').forEach(b=>{
       b.addEventListener('click', ()=>{
+        const protectedEntry=stockIn.find(x=>x.id===b.getAttribute('data-del-in'));
+        if(protectedEntry&&(isCountAdjustment(protectedEntry)||items.find(it=>it.id===protectedEntry.itemId)?.archived)){showToast(workText('Count records and archived history cannot be deleted here.','Catatan hitung dan riwayat arsip tidak dapat dihapus.'),true);return;}
+        const entry=stockIn.find(x=>x.id===b.getAttribute('data-del-in'));
+        const item=entry&&items.find(it=>it.id===entry.itemId);
+        if(item&&itemStats(item).onHand-Number(entry.qty)<0){alert('Cannot remove received stock that has already been used. / Stok yang sudah dipakai tidak dapat dihapus.');return;}
+        if(!confirmRemoval()) return;
         stockIn = stockIn.filter(x=>x.id!==b.getAttribute('data-del-in'));
         saveData(); showToast(currentLang==='en'?'Entry removed.':'Catatan dihapus.');
       });
@@ -3420,6 +3629,7 @@
     }
     if(!qty || qty<=0){ err.textContent = currentLang==='en'?'Enter a quantity greater than zero.':'Masukkan jumlah lebih dari nol.'; err.style.display='block'; return; }
 
+    if(items.find(it=>it.id===siSelectedItemId)?.archived){err.textContent='Restore the archived item first.';err.style.display='block';return;}
     stockIn.push({
       id: uid(),
       itemId: siSelectedItemId,
@@ -3444,6 +3654,7 @@
   const editSiModal = document.getElementById('editSiModal');
   function openEditSiModal(id){
     const x = stockIn.find(e=>e.id===id);
+    if(x&&(isCountAdjustment(x)||items.find(it=>it.id===x.itemId)?.archived)){showToast(workText('Record a new count to correct a count entry; restore archived items before editing.','Catat hitungan baru untuk koreksi; pulihkan barang arsip sebelum mengedit.'),true);return;}
     if(!x) return;
     editingStockInId = id;
     document.getElementById('editSiTitle').textContent = x.vendor==='Opening balance' ? t('modalEditObTitle') : t('modalEditSiTitle');
@@ -3469,6 +3680,8 @@
     if(!newQty || newQty<=0){ err.textContent = currentLang==='en'?'Quantity must be greater than zero.':'Jumlah harus lebih dari nol.'; err.style.display='block'; return; }
     err.style.display='none';
 
+    const stockItem=items.find(it=>it.id===x.itemId);
+    if(!stockItem||itemStats(stockItem).onHand-Number(x.qty)+newQty<0){err.textContent='This edit would leave negative stock. / Stok akan menjadi negatif.';err.style.display='block';return;}
     const newVendor = document.getElementById('editSiVendor').value==='__add__' ? x.vendor : document.getElementById('editSiVendor').value;
     const newOrderNo = document.getElementById('editSiOrderNo').value.trim();
     const newReceivedDate = document.getElementById('editSiReceivedDate').value || x.receivedDate;
@@ -3478,7 +3691,7 @@
     const changes = [];
     if(newVendor !== x.vendor) changes.push(`Vendor: ${x.vendor||'—'} → ${newVendor||'—'}`);
     if(newOrderNo !== x.orderNo) changes.push(`Order #: ${x.orderNo||'—'} → ${newOrderNo||'—'}`);
-    if(newReceivedDate !== x.receivedDate) changes.push(`Received date: ${x.receivedDate||'—'} → ${newReceivedDate}`);
+    if(newReceivedDate !== x.receivedDate) changes.push(`Received date: ${escapeHtml(x.receivedDate||'—')} → ${newReceivedDate}`);
     if(newQty !== x.qty) changes.push(`Qty: ${x.qty} → ${newQty}`);
     if(newNotes !== x.notes) changes.push('Notes updated');
 
@@ -3500,7 +3713,7 @@
     const it = items.find(i=>i.id===soSelectedItemId);
     if(!it){ hint.textContent=''; return; }
     const s = itemStats(it);
-    hint.textContent = currentLang==='en' ? `On hand: ${fmtInt(s.onHand)} units · Avg cost ${fmtRp(s.avgCost)}` : `Stok ada: ${fmtInt(s.onHand)} unit · Rata-rata biaya ${fmtRp(s.avgCost)}`;
+    hint.textContent = currentLang==='en' ? `On hand: ${fmtInt(s.onHand)} units · Current unit value ${fmtRp(s.avgCost)}` : `Stok ada: ${fmtInt(s.onHand)} unit · Nilai unit kini ${fmtRp(s.avgCost)}`;
   }
   function renderStockOut(){
     resetItemCombo('soItemSearch');
@@ -3535,19 +3748,22 @@
         <td>${escapeHtml(it? it.name : (currentLang==='en'?'Deleted item':'Barang dihapus'))}</td>
         <td>${escapeHtml(it? it.category : '—')}</td>
         <td>${escapeHtml(x.kegunaan||'—')}</td>
-        <td>${x.date||'—'}</td>
+        <td>${escapeHtml(x.date||'—')}</td>
         <td class="num">${fmtInt(x.qty)}</td>
         <td>${x.notes? `<span class="note-preview" title="${escapeHtml(x.notes)}">${escapeHtml(x.notes)}</span>` : '—'}</td>
         <td>
           <div class="row-actions">
-            <button class="btn-edit" data-edit-out="${x.id}" title="${currentLang==='en'?'Edit Entry':'Edit Catatan'}">✎</button>
-            <button class="btn-danger" data-del-out="${x.id}" title="${currentLang==='en'?'Delete Entry':'Hapus Catatan'}">✖</button>
+            ${isCountAdjustment(x)?'<span class="count-label">'+workText('Stock count','Hitung stok')+'</span>':`<button class="btn-edit" data-edit-out="${escapeHtml(x.id)}" title="${currentLang==='en'?'Edit Entry':'Edit Catatan'}">✎</button>
+            <button class="btn-danger" data-del-out="${escapeHtml(x.id)}" title="${currentLang==='en'?'Delete Entry':'Hapus Catatan'}">✖</button>`}
           </div>
         </td>
       </tr>`;
     }).join('');
     body.querySelectorAll('[data-del-out]').forEach(b=>{
       b.addEventListener('click', ()=>{
+        const protectedEntry=stockOut.find(x=>x.id===b.getAttribute('data-del-out'));
+        if(protectedEntry&&(isCountAdjustment(protectedEntry)||items.find(it=>it.id===protectedEntry.itemId)?.archived)){showToast(workText('Count records and archived history cannot be deleted here.','Catatan hitung dan riwayat arsip tidak dapat dihapus.'),true);return;}
+        if(!confirmRemoval()) return;
         stockOut = stockOut.filter(x=>x.id!==b.getAttribute('data-del-out'));
         saveData(); showToast(currentLang==='en'?'Entry removed.':'Catatan dihapus.');
       });
@@ -3573,6 +3789,7 @@
     if(!itemId){ err.textContent = currentLang==='en'?'Search and select an item.':'Cari dan pilih barang.'; err.style.display='block'; return; }
     if(!qty || qty<=0){ err.textContent = currentLang==='en'?'Enter a quantity greater than zero.':'Masukkan jumlah lebih dari nol.'; err.style.display='block'; return; }
     const it = items.find(i=>i.id===itemId);
+    if(!it||it.archived){err.textContent='Choose an active item.';err.style.display='block';return;}
     const s = itemStats(it);
     if(qty > s.onHand){
       err.textContent = currentLang==='en' ? `Only ${fmtInt(s.onHand)} units on hand — reduce the quantity or log stock in first.` : `Hanya tersisa ${fmtInt(s.onHand)} unit — kurangi jumlah atau catat barang masuk terlebih dahulu.`;
@@ -3593,6 +3810,7 @@
   const editSoModal = document.getElementById('editSoModal');
   function openEditSoModal(id){
     const x = stockOut.find(e=>e.id===id);
+    if(x&&(isCountAdjustment(x)||items.find(it=>it.id===x.itemId)?.archived)){showToast(workText('Record a new count to correct a count entry; restore archived items before editing.','Catat hitungan baru untuk koreksi; pulihkan barang arsip sebelum mengedit.'),true);return;}
     if(!x) return;
     editingStockOutId = id;
     document.getElementById('editSoDate').value = x.date||'';
@@ -3630,7 +3848,7 @@
     const userEmail = getCurrentUserEmail();
 
     const changes = [];
-    if(newDate !== x.date) changes.push(`Date: ${x.date||'—'} → ${newDate}`);
+    if(newDate !== x.date) changes.push(`Date: ${escapeHtml(x.date||'—')} → ${newDate}`);
     if(newKegunaan !== x.kegunaan) changes.push(`Kegunaan: ${x.kegunaan||'—'} → ${newKegunaan||'—'}`);
     if(newQty !== x.qty) changes.push(`Qty: ${x.qty} → ${newQty}`);
     if(newNotes !== x.notes) changes.push('Notes updated');
@@ -3650,14 +3868,15 @@
     
     const zip = new JSZip();
     
-    const dataObj = { items, stockIn, stockOut, vendors, locations, globalPricePerKg, globalPriceHistory };
+    const dataObj = snapshotData(); delete dataObj.itemImages;
     zip.file("stock_monitor_data.json", JSON.stringify(dataObj, null, 2));
     
     const imgFolder = zip.folder("images");
     for (const [id, dataUrl] of Object.entries(itemImages)) {
       const base64Data = dataUrl.split(',')[1];
       if (base64Data) {
-         imgFolder.file(`${id}.jpg`, base64Data, {base64: true});
+         const extension = /^data:image\/(png|webp|gif);/.exec(dataUrl)?.[1] || 'jpg';
+          imgFolder.file(`${id}.${extension}`, base64Data, {base64: true});
       }
     }
     
@@ -3751,7 +3970,8 @@
     XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
 
     // ===== Sheet 2: Inventory Summary =====
-    const invHeader = [en?'Code':'Kode', en?'Item Name':'Nama Barang', en?'Tags / Purposes':'Tag / Kegunaan', en?'Category':'Kategori', en?'Location':'Lokasi', en?'Unit Weight (kg)':'Berat/Unit (kg)', en?'Total In':'Total Masuk', en?'Total Out':'Total Keluar', en?'On Hand':'Stok Ada', en?'Avg Cost (Rp/unit)':'Biaya Rata2 (Rp/unit)', en?'Inventory Value (Rp)':'Nilai Persediaan (Rp)', en?'Status':'Status', en?'Min Stock':'Stok Min', en?'Max Stock':'Stok Maks'];
+    const invHeader = [en?'Code':'Kode', en?'Item Name':'Nama Barang', en?'Tags / Purposes':'Tag / Kegunaan', en?'Category':'Kategori', en?'Location':'Lokasi', en?'Unit Weight (kg)':'Berat/Unit (kg)', en?'Total In':'Total Masuk', en?'Total Out':'Total Keluar', en?'On Hand':'Stok Ada', en?'Current Unit Value (Rp/unit)':'Nilai Unit Kini (Rp/unit)', en?'Inventory Value (Rp)':'Nilai Persediaan (Rp)', en?'Status':'Status', en?'Min Stock':'Stok Min', en?'Max Stock':'Stok Maks'];
+    invHeader.push('Lifecycle metadata');
     const invAoa = [
       [en?'INVENTORY SUMMARY':'RINGKASAN PERSEDIAAN'],
       invHeader
@@ -3761,7 +3981,7 @@
       invAoa.push([
         it.code||'', it.name, (it.purposes||[]).join('; '), it.category||'', locationNameById(it.locationId),
         Number(it.weightKg||0), s.purchased, s.sold, s.onHand, Math.round(s.avgCost), Math.round(s.invValue),
-        s.status, Number(it.minStock||0), (it.maxStock===''||it.maxStock==null)?'':Number(it.maxStock)
+        s.status, Number(it.minStock||0), (it.maxStock===''||it.maxStock==null)?'':Number(it.maxStock), exportMetadata(it,lifecycleKeys)
       ]);
     });
     const wsInv = XLSX.utils.aoa_to_sheet(invAoa);
@@ -3773,6 +3993,7 @@
 
     // ===== Sheet 3: Masuk (Stock In log) =====
     const siHeader = [en?'Code':'Kode', en?'Item Name':'Nama Barang', en?'Tags / Purposes':'Tag / Kegunaan', en?'Category':'Kategori', en?'Vendor':'Pemasok', en?'Order No.':'No. Order', en?'Order Date':'Tgl Order', en?'Received Date':'Tgl Diterima', en?'Unit Weight (kg)':'Berat/Unit (kg)', en?'Quantity':'Jumlah', en?'Total Weight (kg)':'Total Berat (kg)', en?'Notes':'Catatan', en?'History Log':'Riwayat'];
+    siHeader.push('Movement metadata');
     const siAoa = [
       [en?'STOCK-IN LOG (MASUK)':'LOG BARANG MASUK']
       , siHeader
@@ -3782,7 +4003,7 @@
       siAoa.push([
         it.code||'', it.name||'(deleted item)', (it.purposes||[]).join('; '), it.category||'', x.vendor||'',
         x.orderNo||'', '', toExcelDate(x.receivedDate), Number(it.weightKg||0), Number(x.qty||0),
-        Math.round(Number(x.qty||0)*Number(it.weightKg||0)*100)/100, x.notes||'', serializeHistory(x.history)
+        Math.round(Number(x.qty||0)*Number(it.weightKg||0)*100)/100, x.notes||'', serializeHistory(x.history), exportMetadata(x,movementKeys)
       ]);
     });
     const wsIn = XLSX.utils.aoa_to_sheet(siAoa);
@@ -3794,6 +4015,7 @@
 
     // ===== Sheet 4: Keluar (Stock Out log) =====
     const soHeader = [en?'Code':'Kode', en?'Item Name':'Nama Barang', en?'Usage / Purpose (Kegunaan)':'Kegunaan', en?'Category':'Kategori', en?'Date':'Tanggal', en?'Quantity':'Jumlah', en?'Notes':'Catatan', en?'History Log':'Riwayat'];
+    soHeader.push('Movement metadata');
     const soAoa = [
       [en?'STOCK-OUT LOG (KELUAR)':'LOG BARANG KELUAR'],
       soHeader
@@ -3802,7 +4024,7 @@
       const it = items.find(i=>i.id===x.itemId) || {};
       soAoa.push([
         it.code||'', it.name||'(deleted item)', x.kegunaan||'', it.category||'', toExcelDate(x.date),
-        Number(x.qty||0), x.notes||'', serializeHistory(x.history)
+        Number(x.qty||0), x.notes||'', serializeHistory(x.history), exportMetadata(x,movementKeys)
       ]);
     });
     const wsOut = XLSX.utils.aoa_to_sheet(soAoa);
@@ -3815,7 +4037,7 @@
     // ===== Sheet 5: Vendors (single header row — required for re-import) =====
     const vendAoa = [[en?'Vendor Name':'Nama Pemasok', en?'Contact Person':'Kontak', en?'Phone':'Telepon', en?'Total Orders':'Total Order', en?'Total Qty Supplied':'Total Qty Disuplai']];
     vendors.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(v=>{
-      const orders = stockIn.filter(x=>x.vendor===v.name);
+      const orders = stockIn.filter(x=>!isCountAdjustment(x)&&x.vendor===v.name);
       const qty = orders.reduce((s,x)=>s+Number(x.qty||0),0);
       vendAoa.push([v.name, v.contactName||'', v.phone||'', orders.length, qty]);
     });
@@ -3860,7 +4082,7 @@
       alertHeader
     ];
     const statusRank = {'Out of Stock':0, 'Low Stock':1};
-    items.filter(it=>{ const s=itemStats(it).status; return s==='Low Stock' || s==='Out of Stock'; })
+    items.filter(it=>{ if(it.archived)return false; const s=itemStats(it).status; return s==='Low Stock' || s==='Out of Stock'; })
       .sort((a,b)=>{
         const sa = itemStats(a).status, sb = itemStats(b).status;
         if(statusRank[sa]!==statusRank[sb]) return statusRank[sa]-statusRank[sb];
@@ -3885,93 +4107,73 @@
 
   // ---------- import ----------
   document.getElementById('importBtn').addEventListener('click', ()=>{ document.getElementById('importFile').click(); });
-  document.getElementById('importFile').addEventListener('change', async (e)=>{
-    const file = e.target.files[0];
-    if(!file) return;
-
-    if (file.name.endsWith('.zip')) {
-      try {
-        const zip = await JSZip.loadAsync(file);
-        
-        const jsonText = await zip.file("stock_monitor_data.json").async("string");
-        const parsed = JSON.parse(jsonText);
-        
-        items = (parsed.items || []).map(it => ({code:'', purposes:[], locationId:'', maxStock:'', weightKg:0, category:'Plat', ...it}));
-        stockIn = (parsed.stockIn || []).map(x => ({createdAt: Date.now(), receivedDate: x.receivedDate || x.orderedDate || '', ...x}));
-        stockOut = (parsed.stockOut || []).map(x => ({createdAt: Date.now(), ...x}));
-        vendors = (parsed.vendors || []).map(v => ({contactName:'', phone:'', ...v}));
-        locations = parsed.locations || [];
-        globalPricePerKg = Number(parsed.globalPricePerKg||0);
-        globalPriceHistory = parsed.globalPriceHistory || [];
-
-        itemImages = {};
-        
-        const imgFolder = zip.folder("images");
-        if (imgFolder) {
-          for (const relativePath of Object.keys(imgFolder.files)) {
-             const fileData = imgFolder.files[relativePath];
-             if (!fileData.dir) {
-                const fileName = relativePath.split('/').pop();
-                const id = fileName.split('.')[0];
-                const base64 = await fileData.async("base64");
-                itemImages[id] = "data:image/jpeg;base64," + base64;
-             }
+  document.getElementById('importFile').accept='.zip,.json,.xlsx,.xls';
+  document.getElementById('importFile').addEventListener('change',async e=>{
+    const file=e.target.files[0];if(!file)return;
+    if(pendingSave||!isFirebaseReady||!connected){e.target.value='';return;}
+    const expected=clone(baseSnapshot),before=snapshotData();
+    try{
+      if(file.size>40*1024*1024)throw new Error('Choose a file under 40 MB / Pilih berkas di bawah 40 MB');
+      let candidate;
+      if(/\.json$/i.test(file.name))candidate=JSON.parse(await file.text());
+      else if(/\.zip$/i.test(file.name)){
+        const zip=await JSZip.loadAsync(file);
+        const entries=Object.values(zip.files).filter(f=>!f.dir);
+        if(entries.length>10000)throw new Error('Too many ZIP entries');
+        let total=0;
+        for(const entry of entries){
+          const size=entry._data?.uncompressedSize;
+          if(!Number.isFinite(size)||size>40*1024*1024)throw new Error('ZIP entry too large');
+          total+=size;if(total>40*1024*1024)throw new Error('Expanded ZIP exceeds 40 MB');
+        }
+        const json=zip.file('stock_monitor_data.json');if(!json)throw new Error('Backup JSON is missing');
+        candidate=JSON.parse(await json.async('string'));
+        if(!candidate.itemImages){
+          candidate.itemImages={};
+          for(const entry of entries){
+            const match=/^images\/([A-Za-z0-9_-]+)\.(jpg|jpeg|png|webp|gif)$/i.exec(entry.name);
+            if(match)candidate.itemImages[match[1]]=`data:image/${/jpe?g/i.test(match[2])?'jpeg':match[2].toLowerCase()};base64,${await entry.async('base64')}`;
           }
         }
-        
-        siSelectedItemId=''; soSelectedItemId=''; analyticsSelectedItemId='';
-        activityMonthInit = false; topItemsMonthInit = false; analyticsMonthInit = false; siLogMonthInit = false; soLogMonthInit = false;
-        saveData();
-        showToast(currentLang==='en'?'Zip Data and Images imported successfully.':'Data ZIP dan gambar berhasil diimpor.');
-      } catch (err) {
-        console.error(err);
-        showToast(currentLang==='en'?'Failed to read ZIP file.':'Gagal membaca file ZIP.', true);
-      } finally { e.target.value = ''; }
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = async function(evt){
-      try{
-        const data = new Uint8Array(evt.target.result);
-        const wb = XLSX.read(data, {type:'array', cellDates:true});
-        const result = parseWorkbook(wb);
-        if(!result.items.length){ showToast(currentLang==='en'?'No recognizable item rows found in that file.':'Tidak ada baris barang yang dikenali dalam file tersebut.', true); return; }
-        const photoCount = Object.keys(result.photosByName).length;
-        const msg = currentLang==='en' ? `Import will replace all current data with ${result.items.length} item(s), ${result.stockIn.length} stock-in entr${result.stockIn.length===1?'y':'ies'}, ${result.stockOut.length} stock-out entr${result.stockOut.length===1?'y':'ies'}, ${result.vendors.length} vendor(s), ${photoCount} photo(s), and the material price history. Continue?` : `Impor akan menggantikan seluruh data saat ini dengan ${result.items.length} barang, ${result.stockIn.length} catatan masuk, ${result.stockOut.length} catatan keluar, ${result.vendors.length} pemasok, ${photoCount} foto, dan riwayat harga material. Lanjutkan?`;
-        if(!confirm(msg)){ e.target.value=''; return; }
-
-        itemImages = {};
-
-        items = result.items;
-        stockIn = result.stockIn;
-        stockOut = result.stockOut;
-        vendors = result.vendors;
-        globalPricePerKg = result.globalPricePerKg;
-        globalPriceHistory = result.globalPriceHistory;
-
-        for(const it of items){
-          const key = it.name.trim().toLowerCase();
-          if(result.photosByName[key]){
-            itemImages[it.id] = result.photosByName[key];
+      }else if(/\.xlsx?$/i.test(file.name)){
+        // XLSX is also a ZIP container: check expansion before spreadsheet parsing.
+        if(/\.xlsx$/i.test(file.name)){
+          const zip=await JSZip.loadAsync(file);let total=0;
+          for(const entry of Object.values(zip.files).filter(f=>!f.dir)){
+            const size=entry._data?.uncompressedSize;
+            if(!Number.isFinite(size))throw new Error('Invalid workbook');total+=size;
+            if(total>40*1024*1024)throw new Error('Expanded workbook exceeds 40 MB');
           }
         }
-
-        siSelectedItemId=''; soSelectedItemId=''; analyticsSelectedItemId='';
-        activityMonthInit = false; topItemsMonthInit = false; analyticsMonthInit = false; siLogMonthInit = false; soLogMonthInit = false;
-        saveData();
-        showToast(currentLang==='en'?'Data imported successfully.':'Data berhasil diimpor.');
-      }catch(err){
-        console.error(err);
-        showToast(currentLang==='en'?'Could not read that file — is it a workbook exported from this tool?':'Gagal membaca file — apakah ini file Excel hasil ekspor alat ini?', true);
-      }finally{ e.target.value = ''; }
-    };
-    reader.readAsArrayBuffer(file);
+        const result=parseWorkbook(XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:true}));
+        if(!result.items.length)throw new Error('No inventory rows found');
+        candidate={...result,itemImages:{}};delete candidate.photosByName;
+        for(const it of candidate.items){
+          const old=before.items.find(x=>x.name.trim().toLowerCase()===it.name.trim().toLowerCase());
+          if(old&&it.archived===undefined)for(const key of lifecycleKeys)if(old[key]!==undefined)it[key]=clone(old[key]);
+          const photo=result.photosByName[it.name.trim().toLowerCase()] || (old&&before.itemImages[old.id]);
+          if(photo)candidate.itemImages[it.id]=photo;
+        }
+      }else throw new Error('Use JSON, ZIP or Excel');
+      candidate={items:[],stockIn:[],stockOut:[],vendors:[],locations:[],itemImages:{},globalPricePerKg:0,globalPriceHistory:[],...candidate};
+      // Strip auxiliary parser fields; keep the existing eight cloud fields.
+      candidate=Object.fromEntries(dataKeys.map(key=>[key,candidate[key]]));
+      validateData(candidate);
+      const summary=`${candidate.items.length} items / barang\n${candidate.stockIn.length} stock-in / masuk\n${candidate.stockOut.length} stock-out / keluar\n${candidate.locations.length} locations / lokasi\n${Object.keys(candidate.itemImages).length} photos / foto`;
+      if(!confirm('Replace current inventory with this file? / Ganti inventaris dengan berkas ini?\n\n'+summary+'\n\nA recovery backup downloads first. / Cadangan pemulihan diunduh terlebih dahulu.'))return;
+      if(!equivalent(latestSnapshot,expected)||pendingSave)throw new Error('Cloud data changed during import. Start the import again. / Data cloud berubah. Ulangi impor.');
+      downloadBackup(before,'before-import');
+      baseSnapshot=expected;applyData(candidate);
+      siSelectedItemId='';soSelectedItemId='';analyticsSelectedItemId='';
+      activityMonthInit=false;topItemsMonthInit=false;analyticsMonthInit=false;siLogMonthInit=false;soLogMonthInit=false;
+      saveData();
+    }catch(err){alert('Import canceled / Impor dibatalkan: '+err.message);}
+    finally{e.target.value='';}
   });
 
   function toISODate(val){
     if(val==null || val==='') return '';
-    if(val instanceof Date && !isNaN(val)) return val.toISOString().slice(0,10);
+    if(val instanceof Date && !isNaN(val)) return localISO(val);
     if(typeof val === 'number'){
       const d = new Date(Math.round((val - 25569) * 86400 * 1000));
       if(!isNaN(d)) return d.toISOString().slice(0,10);
@@ -4008,7 +4210,7 @@
     }
     const id = uid();
     itemMap.set(key, {
-      id, code: String(code||'').trim(), name: String(name).trim(), locationId:'', category: catVal, minStock: Number(minStock)||1,
+      id, code: String(code||'').trim(), name: String(name).trim(), locationId:'', category: catVal, minStock: minStock === undefined || minStock === "" ? 1 : Number(minStock),
       maxStock: (maxStock!==undefined && maxStock!=='' && !isNaN(Number(maxStock))) ? Number(maxStock) : '',
       weightKg: 0,
       purposes: parsePurposes(purposesStr)
@@ -4021,12 +4223,22 @@
     const newStockIn = [];
     const newStockOut = [];
 
+    const parsedLocations = (sheetRows(wb, 'Locations') || []).slice(1).filter(r=>r[0]).map(r=>({id:uid(),name:String(r[0]),contactName:String(r[1]||''),phone:String(r[2]||''),address:String(r[3]||'')}));
     const invRows = sheetRows(wb, 'Inventory Summary');
     if(invRows){
       for(let r=2; r<invRows.length; r++){
         const row = invRows[r];
         if(!row || !row[1]) continue;
-        findItemId(itemMap, row[1], row[3], row[2], row[12], row[13], row[0]);
+        const importedId = findItemId(itemMap, row[1], row[3], row[2], row[12], row[13], row[0]);
+        const imported = [...itemMap.values()].find(it=>it.id===importedId);
+        imported.weightKg = Number(row[5] || 0);
+        Object.assign(imported,optionalMetadata(row[14],lifecycleKeys));
+        const locationName = String(row[4]||'').trim();
+        if(locationName && locationName !== '—') {
+          let loc = parsedLocations.find(l=>l.name.toLowerCase()===locationName.toLowerCase());
+          if(!loc){loc={id:uid(),name:locationName,contactName:'',phone:'',address:''};parsedLocations.push(loc);}
+          imported.locationId=loc.id;
+        }
       }
     }
     const masukRows = sheetRows(wb, 'Masuk');
@@ -4046,7 +4258,7 @@
           qty: Number(row[9])||0,
           notes: String(row[11]||''),
           history: parsedHist.length ? [...parsedHist, {ts:nowStamp(), summary:'Re-imported from Excel'}] : [{ts:nowStamp(), summary:'Imported from Excel'}],
-          createdAt: Date.now() - r
+          createdAt: Date.now() - r, ...optionalMetadata(row[13],movementKeys)
         });
       }
     }
@@ -4063,7 +4275,7 @@
           qty: Number(row[5])||0,
           notes: String(row[6]||''),
           history: parsedHist.length ? [...parsedHist, {ts:nowStamp(), summary:'Re-imported from Excel'}] : [{ts:nowStamp(), summary:'Imported from Excel'}],
-          createdAt: Date.now() - r
+          createdAt: Date.now() - r, ...optionalMetadata(row[8],movementKeys)
         });
       }
     }
@@ -4086,7 +4298,7 @@
     let newGlobalPrice = 0, newGlobalHistory = [];
     const pricingRows = sheetRows(wb, 'Material Pricing');
     if(pricingRows && pricingRows.length){
-      if(pricingRows[0] && String(pricingRows[0][0]||'').toLowerCase().indexOf('current price')===0){
+      if(pricingRows[0] && /^(current price|harga saat ini)/i.test(String(pricingRows[0][0]||''))){
         newGlobalPrice = Number(pricingRows[0][1])||0;
       }
       const headerIdx = pricingRows.findIndex(r=> r && r[0]==='Timestamp');
@@ -4100,9 +4312,9 @@
     }
 
     const photoRows = sheetRows(wb, 'Photos');
-    const photosByName = {};
+    const photosByName = Object.create(null);
     if(photoRows && photoRows.length>1){
-      const chunkMap = {};
+      const chunkMap = Object.create(null);
       for(let r=1;r<photoRows.length;r++){
         const row = photoRows[r];
         if(!row || !row[0]) continue;
@@ -4122,6 +4334,7 @@
       stockIn: newStockIn,
       stockOut: newStockOut,
       vendors: parsedVendors,
+      locations: parsedLocations,
       globalPricePerKg: newGlobalPrice,
       globalPriceHistory: newGlobalHistory,
       photosByName
@@ -4139,7 +4352,379 @@
     renderPricing();
     renderLocations();
     renderVendors();
+    enhanceInventoryNavigation();
+    renderOperations();
   }
+
+  // Operations add optional fields inside the original item/transaction arrays.
+  const isCountAdjustment = entry => entry.kind === 'countAdjustment';
+  const activeItems = () => items.filter(it=>!it.archived);
+  const workText = (en,id) => currentLang==='id'?id:en;
+  const stockNumber = n => Number(Number(n).toFixed(8));
+  const lifecycleKeys=['archived','archivedAt','archivedBy','archiveReason','archiveHistory'];
+  const movementKeys=['kind','batchId','countSessionId','countExpected','countActual','countReason','createdByUid','createdBy','createdAt'];
+  function optionalMetadata(value,keys){
+    if(value==null||value==='')return {};
+    const parsed=JSON.parse(String(value));
+    if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw new Error('Invalid report metadata');
+    return Object.fromEntries(keys.filter(key=>Object.prototype.hasOwnProperty.call(parsed,key)).map(key=>[key,parsed[key]]));
+  }
+  function exportMetadata(value,keys){return JSON.stringify(Object.fromEntries(keys.filter(key=>value[key]!==undefined).map(key=>[key,value[key]])));}
+  function balanceIn(data,id){return stockNumber(data.stockIn.filter(x=>x.itemId===id).reduce((sum,x)=>sum+Number(x.qty||0),0)-data.stockOut.filter(x=>x.itemId===id).reduce((sum,x)=>sum+Number(x.qty||0),0));}
+  function requireOperationReady(expected){
+    if(!isFirebaseReady||!connected||!auth.currentUser||pendingSave||saving)throw new Error(workText('Wait for a connection and resolve pending saves first.','Tunggu koneksi dan selesaikan simpanan tertunda.'));
+    if(expected&&(!equivalent(expected,baseSnapshot)||!equivalent(expected,latestSnapshot)))throw new Error(workText('Cloud data changed while this form was open. Close and restart with the latest quantities. Nothing was saved.','Data cloud berubah. Tutup dan mulai lagi dengan stok terbaru. Tidak ada perubahan tersimpan.'));
+  }
+  function validOperationDate(value){return typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&!isNaN(Date.parse(value))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;}
+  function buildBulkCandidate(base,form,actor){
+    if(!['in','out'].includes(form.direction)||!validOperationDate(form.date))throw new Error(workText('Choose a movement and a valid date.','Pilih pergerakan dan tanggal yang valid.'));
+    if(!form.lines.length||form.lines.length>100)throw new Error(workText('Add between 1 and 100 lines.','Tambahkan 1 sampai 100 baris.'));
+    const candidate=clone(base),totals=new Map(),batchId=uid(),stamp=Date.now();
+    for(const line of form.lines){
+      const item=base.items.find(it=>it.id===line.itemId&&!it.archived),qty=Number(line.qty);
+      if(!item)throw new Error(workText('Choose an active item on every line.','Pilih barang aktif di setiap baris.'));
+      if(String(line.qty).trim()===''||!Number.isFinite(qty)||qty<=0)throw new Error(workText('Every quantity must be greater than zero.','Setiap jumlah harus lebih dari nol.'));
+      const total=stockNumber((totals.get(item.id)||0)+qty);totals.set(item.id,total);
+      if(form.direction==='out'&&total>balanceIn(base,item.id))throw new Error(item.name+workText(': batch quantity exceeds available stock.',': jumlah batch melebihi stok tersedia.'));
+      const record={id:uid(),itemId:item.id,qty,notes:String(line.notes||'').trim(),batchId,createdAt:stamp,createdBy:actor.email,createdByUid:actor.uid,history:[{ts:nowStamp(),summary:`Bulk ${form.direction} · ${batchId} · ${actor.email}`} ]};
+      if(form.direction==='in')candidate.stockIn.push({...record,receivedDate:form.date,vendor:form.vendor||'',orderNo:form.reference||''});
+      else candidate.stockOut.push({...record,date:form.date,kegunaan:form.reference||''});
+    }
+    validateData(candidate);
+    return {candidate,rows:[...totals].map(([id,qty])=>({item:base.items.find(it=>it.id===id),before:balanceIn(base,id),change:(form.direction==='in'?1:-1)*qty,after:stockNumber(balanceIn(base,id)+(form.direction==='in'?1:-1)*qty)})),batchId,lineCount:form.lines.length};
+  }
+  function buildCountCandidate(base,counts,reason,actor,date){
+    if(!validOperationDate(date))throw new Error('Invalid count date');
+    const counted=Object.entries(counts).filter(([,value])=>String(value).trim()!=='');
+    if(!counted.length)throw new Error(workText('Enter at least one physical count. Leave uncounted items blank.','Isi minimal satu hitungan. Biarkan kosong jika belum dihitung.'));
+    const candidate=clone(base),rows=[],countSessionId=uid(),stamp=Date.now();
+    for(const [id,value] of counted){
+      const item=base.items.find(it=>it.id===id&&!it.archived),actual=Number(value),expected=balanceIn(base,id);
+      if(!item||!Number.isFinite(actual)||actual<0)throw new Error(workText('Counts must be zero or greater for active items.','Hitungan barang aktif harus nol atau lebih.'));
+      const change=stockNumber(actual-expected);
+      if(change!==0&&!String(reason).trim())throw new Error(workText('Explain the discrepancy before saving a changed quantity.','Jelaskan selisih sebelum menyimpan perubahan jumlah.'));
+      const explanation=String(reason).trim()||workText('Physical verification — no difference','Pemeriksaan fisik — tanpa selisih');
+      const record={id:uid(),itemId:id,qty:Math.abs(change),kind:'countAdjustment',countSessionId,countExpected:expected,countActual:actual,countReason:explanation,createdAt:stamp,createdBy:actor.email,createdByUid:actor.uid,
+        notes:`Stock count ${countSessionId}: ${expected} → ${actual}. ${explanation}`,
+        history:[{ts:nowStamp(),summary:`Physical count by ${actor.email}: expected ${expected}, counted ${actual}, adjustment ${change}. ${explanation}`} ]};
+      if(change>=0)candidate.stockIn.push({...record,receivedDate:date,vendor:'Stock count',orderNo:countSessionId});
+      else candidate.stockOut.push({...record,date,kegunaan:'Stock count'});
+      rows.push({item,before:expected,change,after:actual});
+    }
+    validateData(candidate);return {candidate,rows,countSessionId};
+  }
+  function buildArchiveCandidate(base,id,reason,actor){
+    const candidate=clone(base),item=candidate.items.find(it=>it.id===id);
+    if(!item)throw new Error('Item not found');
+    const restoring=!!item.archived;
+    if(!restoring&&balanceIn(base,id)!==0)throw new Error(workText('Only zero-stock items can be archived. Issue the remaining stock or complete a physical count first.','Hanya barang dengan stok nol yang dapat diarsipkan. Catat pengeluaran atau hitung fisik terlebih dahulu.'));
+    item.archived=!restoring;item.archivedAt=restoring?0:Date.now();item.archivedBy=restoring?'':actor.email;item.archiveReason=restoring?'':String(reason).trim();
+    item.archiveHistory=[...(item.archiveHistory||[]),{ts:nowStamp(),summary:`${restoring?'Restored':'Archived'} by ${actor.email}${reason?': '+reason:''}`}];
+    validateData(candidate);return candidate;
+  }
+  const operationActor=()=>({email:auth.currentUser?.email||'',uid:auth.currentUser?.uid||''});
+  let bulkWork=null,countWork=null,archiveWork=null;
+  function operationError(id,error){const el=document.getElementById(id);el.hidden=!error;el.textContent=error?error.message||String(error):'';}
+  function commitOperation(candidate,expected,modal){
+    requireOperationReady(expected);validateData(candidate);applyData(candidate);saveData();
+    document.getElementById(modal).classList.remove('active');
+  }
+  function translateWorkflows(){document.querySelectorAll('[data-work-en]').forEach(el=>{const text=el.getAttribute(currentLang==='id'?'data-work-id':'data-work-en');if(text!==null&&el.textContent!==text)el.textContent=text;});}
+  function movementReview(rows){return `<div class="work-table-wrap"><table class="work-table"><thead><tr><th>${workText('Item','Barang')}</th><th class="num">${workText('Before','Sebelum')}</th><th class="num">${workText('Change','Perubahan')}</th><th class="num">${workText('After','Sesudah')}</th></tr></thead><tbody>${rows.map(row=>`<tr><td><strong>${escapeHtml(row.item.name)}</strong><br><small>${escapeHtml(row.item.code||'')}</small></td><td class="num">${fmtInt(row.before)}</td><td class="num ${row.change<0?'difference-negative':'difference-positive'}">${row.change>0?'+':''}${fmtInt(row.change)}</td><td class="num"><strong>${fmtInt(row.after)}</strong></td></tr>`).join('')}</tbody></table></div>`;}
+  function setBulkReview(review){document.getElementById('bulkEditor').hidden=review;document.getElementById('bulkReview').hidden=!review;document.getElementById('editBulkBatch').hidden=!review;document.getElementById('reviewBulkBatch').hidden=review;document.getElementById('saveBulkBatch').hidden=!review;}
+  function addBulkLine(){
+    if(document.querySelectorAll('#bulkLines tr').length>=100)return;
+    const tr=document.createElement('tr');
+    const listId='bulk-options-'+uid(),available=bulkWork.base.items.filter(it=>!it.archived).sort((a,b)=>a.name.localeCompare(b.name));
+    const label=it=>(it.code?it.code+' · ':'')+it.name;
+    const options=available.map(it=>({id:it.id,label:label(it)+(available.filter(other=>label(other)===label(it)).length>1?' · '+it.id:''),tags:(it.purposes||[]).join(' · ')}));
+    tr.innerHTML=`<td><input class="bulk-item-search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${listId}" aria-label="${workText('Item name, code or tag','Nama, kode atau tag barang')}" placeholder="${workText('Type name, code or tag…','Ketik nama, kode atau tag…')}" autocomplete="off"><div class="bulk-suggestions" id="${listId}" role="listbox" aria-label="${workText('Matching items','Barang cocok')}" hidden></div><input type="hidden" class="bulk-item"></td><td class="num bulk-balance">—</td><td><input class="bulk-qty" aria-label="${workText('Quantity','Jumlah')}" type="number" min="0" step="any" inputmode="decimal"></td><td><input class="bulk-note" aria-label="${workText('Line note','Catatan baris')}" maxlength="1000"></td><td><button class="work-remove" type="button" aria-label="${workText('Remove line','Hapus baris')}">×</button></td>`;
+    const search=tr.querySelector('.bulk-item-search');
+    const resolveItem=()=>{const match=options.find(it=>it.label===search.value);tr.querySelector('.bulk-item').value=match?match.id:'';tr.querySelector('.bulk-balance').textContent=match?fmtInt(balanceIn(bulkWork.base,match.id)):'—';};
+    const suggestions=tr.querySelector('.bulk-suggestions');let matches=[],active=-1;
+    const close=()=>{suggestions.hidden=true;search.setAttribute('aria-expanded','false');search.removeAttribute('aria-activedescendant');active=-1;};
+    const highlight=()=>{[...suggestions.querySelectorAll('[role=option]')].forEach((el,i)=>el.setAttribute('aria-selected',String(i===active)));if(active>=0){search.setAttribute('aria-activedescendant',listId+'-'+active);suggestions.children[active].scrollIntoView({block:'nearest'});}else search.removeAttribute('aria-activedescendant');};
+    const choose=index=>{if(!matches[index])return;search.value=matches[index].label;resolveItem();bulkWork.dirty=true;close();};
+    const show=()=>{const query=search.value.trim().toLocaleLowerCase();matches=options.filter(it=>(it.label+' '+it.tags).toLocaleLowerCase().includes(query));active=-1;suggestions.innerHTML=matches.length?matches.map((it,i)=>`<div role="option" id="${listId}-${i}" aria-selected="false" data-index="${i}">${escapeHtml(it.label)}${it.tags?`<small class="bulk-option-tags">${escapeHtml(it.tags)}</small>`:''}</div>`).join(''):`<div class="bulk-no-match" role="status">${workText('No matching items','Tidak ada barang cocok')}</div>`;suggestions.hidden=false;search.setAttribute('aria-expanded','true');search.removeAttribute('aria-activedescendant');};
+    search.addEventListener('input',()=>{resolveItem();show();});search.addEventListener('change',resolveItem);
+    search.addEventListener('focus',show);search.addEventListener('click',()=>{if(suggestions.hidden)show();});search.addEventListener('blur',close);
+    suggestions.addEventListener('mousedown',e=>e.preventDefault());suggestions.addEventListener('click',e=>{const option=e.target.closest('[data-index]');if(option)choose(Number(option.dataset.index));});
+    search.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(suggestions.hidden)show();if(matches.length){active=(active+(e.key==='ArrowDown'?1:-1)+matches.length)%matches.length;highlight();}}else if(e.key==='Enter'&&!suggestions.hidden){e.preventDefault();if(active>=0)choose(active);else if(matches.length===1)choose(0);}else if(e.key==='Escape'&&!suggestions.hidden){e.preventDefault();e.stopPropagation();close();}});
+
+    tr.querySelector('.work-remove').onclick=()=>{tr.remove();bulkWork.dirty=true;};document.getElementById('bulkLines').append(tr);
+  }
+  function openBulk(direction='in'){
+    try{requireOperationReady();}catch(e){showToast(e.message,true);return;}
+    bulkWork={base:snapshotData(),expected:clone(baseSnapshot),dirty:false,review:null};
+    document.getElementById('bulkDirection').value=direction;document.getElementById('bulkDate').value=todayISO();document.getElementById('bulkReference').value='';
+    document.getElementById('bulkVendor').innerHTML=`<option value="">${workText('No vendor','Tanpa pemasok')}</option>`+vendors.map(v=>`<option value="${escapeHtml(v.name)}">${escapeHtml(v.name)}</option>`).join('');
+    document.getElementById('bulkVendorField').hidden=direction==='out';document.getElementById('bulkLines').replaceChildren();addBulkLine();addBulkLine();setBulkReview(false);operationError('bulkError',null);translateWorkflows();document.getElementById('bulkModal').classList.add('active');
+  }
+  document.getElementById('bulkModal').addEventListener('input',()=>{if(bulkWork)bulkWork.dirty=true;});
+  document.getElementById('bulkModal').addEventListener('change',()=>{if(bulkWork)bulkWork.dirty=true;});
+  document.getElementById('bulkDirection').onchange=e=>{document.getElementById('bulkVendorField').hidden=e.target.value==='out';};
+  document.getElementById('addBulkLine').onclick=()=>{addBulkLine();bulkWork.dirty=true;};
+  document.getElementById('editBulkBatch').onclick=()=>{bulkWork.review=null;setBulkReview(false);};
+  document.getElementById('reviewBulkBatch').onclick=()=>{
+    try{
+      requireOperationReady(bulkWork.expected);
+      for(const tr of document.querySelectorAll('#bulkLines tr')){if(tr.querySelector('.bulk-item-search').value.trim()&&!tr.querySelector('.bulk-item').value)throw new Error(workText('Choose a matching item from the suggestions for each entered item.','Pilih barang yang cocok dari saran untuk setiap barang yang diketik.'));}
+      const form={direction:document.getElementById('bulkDirection').value,date:document.getElementById('bulkDate').value,vendor:document.getElementById('bulkVendor').value,reference:document.getElementById('bulkReference').value.trim(),lines:[...document.querySelectorAll('#bulkLines tr')].map(tr=>({itemId:tr.querySelector('.bulk-item').value,qty:tr.querySelector('.bulk-qty').value,notes:tr.querySelector('.bulk-note').value})).filter(row=>row.itemId||row.qty!==''||row.notes)};
+      bulkWork.review=buildBulkCandidate(bulkWork.base,form,operationActor());
+      document.getElementById('bulkReview').innerHTML=`<div class="work-review-summary"><div><strong>${bulkWork.review.lineCount}</strong><span>${workText('lines · one save','baris · sekali simpan')}</span></div><div><strong>${bulkWork.review.rows.length}</strong><span>${workText('items affected','barang terkait')}</span></div><div><strong>${form.direction==='in'?'IN':'OUT'}</strong><span>${escapeHtml(form.date)}</span></div></div>`+movementReview(bulkWork.review.rows);
+      setBulkReview(true);operationError('bulkError',null);
+    }catch(e){operationError('bulkError',e);}
+  };
+  document.getElementById('saveBulkBatch').onclick=()=>{try{if(!bulkWork?.review)return;commitOperation(bulkWork.review.candidate,bulkWork.expected,'bulkModal');bulkWork=null;}catch(e){operationError('bulkError',e);}};
+
+  function setCountReview(review){document.getElementById('countEditor').hidden=review;document.getElementById('countReview').hidden=!review;document.getElementById('editCount').hidden=!review;document.getElementById('reviewCount').hidden=review;document.getElementById('saveCount').hidden=!review;}
+  function filterCountRows(){const search=document.getElementById('countSearch').value.toLowerCase().trim(),location=document.getElementById('countLocation').value;document.querySelectorAll('#countLines tr[data-item]').forEach(tr=>{tr.hidden=!!((search&&!tr.dataset.search.includes(search))||(location&&tr.dataset.location!==location));});}
+  function updateCountProgress(){
+    let counted=0,different=0;
+    document.querySelectorAll('#countLines tr').forEach(tr=>{const input=tr.querySelector('input'),cell=tr.querySelector('.count-difference');const entered=input.value.trim()!=='';tr.classList.toggle('counted-row',entered);const n=Number(input.value);const difference=stockNumber(n-Number(tr.dataset.expected));if(entered&&Number.isFinite(n)&&n>=0){counted++;if(difference!==0)different++;cell.textContent=(difference>0?'+':'')+fmtInt(difference);cell.className='num count-difference '+(difference<0?'difference-negative':difference>0?'difference-positive':'');}else{cell.textContent='—';cell.className='num count-difference';}});
+    document.getElementById('countProgress').textContent=workText(`${counted} items counted · ${different} differences · blank items will be skipped`,`${counted} barang dihitung · ${different} selisih · kolom kosong dilewati`);
+  }
+  function openCount(){
+    try{requireOperationReady();}catch(e){showToast(e.message,true);return;}
+    countWork={base:snapshotData(),expected:clone(baseSnapshot),date:todayISO(),dirty:false,review:null};
+    document.getElementById('countSearch').value='';document.getElementById('countReason').value='';
+    document.getElementById('countLocation').innerHTML=`<option value="">${workText('All locations','Semua lokasi')}</option><option value="__none__">${workText('Unassigned','Tanpa lokasi')}</option>`+locations.map(l=>`<option value="${escapeHtml(l.id)}">${escapeHtml(l.name)}</option>`).join('');
+    document.getElementById('countLines').innerHTML=countWork.base.items.filter(it=>!it.archived).sort((a,b)=>a.name.localeCompare(b.name)).map(it=>`<tr data-item="${escapeHtml(it.id)}" data-search="${escapeHtml((it.name+' '+(it.code||'')).toLowerCase())}" data-location="${escapeHtml(it.locationId||'__none__')}" data-expected="${balanceIn(countWork.base,it.id)}"><td><strong>${escapeHtml(it.name)}</strong><br><small>${escapeHtml(it.code||'')}</small></td><td>${escapeHtml(locationNameById(it.locationId)||'—')}</td><td class="num">${fmtInt(balanceIn(countWork.base,it.id))}</td><td><input type="number" min="0" step="any" inputmode="decimal" aria-label="${escapeHtml(workText('Counted quantity for ','Jumlah terhitung untuk ')+it.name)}"></td><td class="num count-difference">—</td></tr>`).join('');
+    if(!activeItems().length)document.getElementById('countLines').innerHTML=`<tr><td colspan="5">${workText('No active items to count.','Tidak ada barang aktif untuk dihitung.')}</td></tr>`;
+    setCountReview(false);operationError('countError',null);if(activeItems().length)updateCountProgress();else document.getElementById('countProgress').textContent='';translateWorkflows();document.getElementById('countModal').classList.add('active');
+  }
+  document.getElementById('countLines').addEventListener('input',()=>{countWork.dirty=true;updateCountProgress();});
+  document.getElementById('countReason').oninput=()=>{countWork.dirty=true;};
+  document.getElementById('countSearch').oninput=filterCountRows;document.getElementById('countLocation').onchange=filterCountRows;
+  document.getElementById('editCount').onclick=()=>{countWork.review=null;setCountReview(false);};
+  document.getElementById('reviewCount').onclick=()=>{
+    try{requireOperationReady(countWork.expected);const counts=Object.fromEntries([...document.querySelectorAll('#countLines tr[data-item]')].map(tr=>[tr.dataset.item,tr.querySelector('input').value]));
+      countWork.review=buildCountCandidate(countWork.base,counts,document.getElementById('countReason').value,operationActor(),countWork.date);
+      const changed=countWork.review.rows.filter(row=>row.change!==0).length;
+      document.getElementById('countReview').innerHTML=`<div class="work-review-summary"><div><strong>${countWork.review.rows.length}</strong><span>${workText('items counted','barang dihitung')}</span></div><div><strong>${changed}</strong><span>${workText('stock adjustments','penyesuaian stok')}</span></div></div>`+movementReview(countWork.review.rows)+`<p class="work-hint">${workText('Count adjustments do not increase purchase or usage totals. Existing history is kept.','Penyesuaian tidak menambah total pembelian atau penggunaan. Riwayat lama tetap tersimpan.')}</p>`;
+      setCountReview(true);operationError('countError',null);
+    }catch(e){operationError('countError',e);}
+  };
+  document.getElementById('saveCount').onclick=()=>{try{if(!countWork?.review)return;commitOperation(countWork.review.candidate,countWork.expected,'countModal');countWork=null;}catch(e){operationError('countError',e);}};
+
+  function openArchive(id){
+    try{requireOperationReady();const item=items.find(it=>it.id===id);if(!item)return;archiveWork={id,expected:clone(baseSnapshot),base:snapshotData()};
+      const restoring=!!item.archived;document.getElementById('archiveTitle').textContent=workText(restoring?'Restore item':'Archive item',restoring?'Pulihkan barang':'Arsipkan barang');
+      document.getElementById('confirmArchive').textContent=document.getElementById('archiveTitle').textContent;document.getElementById('archiveItemName').textContent=item.name;
+      document.getElementById('archiveExplanation').textContent=restoring?workText('This item will return to the active inventory. Its history is preserved.','Barang kembali ke inventaris aktif. Riwayat tetap tersimpan.'):workText(`On hand: ${fmtInt(itemStats(item).onHand)}. Only zero-stock items can be archived. History and photos are kept, and the item can be restored.`,`Stok tersedia: ${fmtInt(itemStats(item).onHand)}. Hanya stok nol dapat diarsipkan. Riwayat dan foto dipertahankan; barang dapat dipulihkan.`);
+      document.getElementById('archiveReason').value='';operationError('archiveError',null);translateWorkflows();document.getElementById('archiveModal').classList.add('active');
+    }catch(e){showToast(e.message,true);}
+  }
+  document.getElementById('confirmArchive').onclick=()=>{try{const candidate=buildArchiveCandidate(archiveWork.base,archiveWork.id,document.getElementById('archiveReason').value,operationActor());commitOperation(candidate,archiveWork.expected,'archiveModal');archiveWork=null;}catch(e){operationError('archiveError',e);}};
+  document.addEventListener('click',e=>{const archive=e.target.closest('[data-archive-item]');if(archive)openArchive(archive.dataset.archiveItem);});
+  function closeWorkflow(id){
+    const work=id==='bulkModal'?bulkWork:id==='countModal'?countWork:archiveWork;
+    if(work?.dirty&&!confirm(workText('Discard the entries in this form? No stock has been saved.','Buang isian formulir ini? Stok belum disimpan.')))return;
+    document.getElementById(id).classList.remove('active');if(id==='bulkModal')bulkWork=null;if(id==='countModal')countWork=null;if(id==='archiveModal')archiveWork=null;
+    if(!pendingSave&&!saving&&latestSnapshot&&!document.querySelector('.modal-backdrop.active')&&!equivalent(baseSnapshot,latestSnapshot)){
+      baseSnapshot=clone(latestSnapshot);applyData(baseSnapshot);renderAll();setSync(connected?'saved':'offline');
+    }
+  }
+  for(const [id,modal] of [['closeBulkModal','bulkModal'],['cancelBulkModal','bulkModal'],['closeCountModal','countModal'],['cancelCountModal','countModal'],['closeArchiveModal','archiveModal'],['cancelArchiveModal','archiveModal']])document.getElementById(id).onclick=()=>closeWorkflow(modal);
+  document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const modal=document.querySelector('#bulkModal.active,#countModal.active,#archiveModal.active');if(modal){e.preventDefault();e.stopImmediatePropagation();closeWorkflow(modal.id);}},true);
+  window.addEventListener('beforeunload',e=>{if(bulkWork?.dirty||countWork?.dirty){e.preventDefault();e.returnValue='';}});
+  for(const id of ['bulkInventory','bulkStockIn'])document.getElementById(id).onclick=()=>openBulk('in');document.getElementById('bulkStockOut').onclick=()=>openBulk('out');
+  for(const id of ['countInventory','startCountPage'])document.getElementById(id).onclick=openCount;
+  document.getElementById('invLifecycleFilter').onchange=renderInventory;
+  function renderOperations(){
+    translateWorkflows();
+    const records=[...stockIn,...stockOut].filter(isCountAdjustment).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    const sessions=new Set(records.map(x=>x.countSessionId));
+    const checkedToday=new Set(records.filter(x=>localISO(new Date(x.createdAt))===todayISO()).map(x=>x.itemId));
+    document.getElementById('countMetrics').innerHTML=[[activeItems().length,workText('active items','barang aktif')],[checkedToday.size,workText('items checked today','barang diperiksa hari ini')],[sessions.size,workText('completed count sessions','sesi hitung selesai')]].map(([n,label])=>`<div class="work-metric"><strong>${fmtInt(n)}</strong><span>${label}</span></div>`).join('');
+    document.getElementById('countHistoryBody').innerHTML=records.length?records.map(row=>{const item=items.find(it=>it.id===row.itemId);const delta=stockNumber(row.countActual-row.countExpected);return `<tr><td data-sort-value="${Number(row.createdAt)||0}">${escapeHtml(formatDateTime(row.createdAt))}</td><td>${escapeHtml(item?.name||'—')}</td><td class="num">${fmtInt(row.countExpected)}</td><td class="num">${fmtInt(row.countActual)}</td><td class="num ${delta<0?'difference-negative':'difference-positive'}">${delta>0?'+':''}${fmtInt(delta)}</td><td>${escapeHtml(row.countReason||'')}</td><td>${escapeHtml(row.createdBy||'')}</td></tr>`;}).join(''):`<tr class="empty-row"><td colspan="7">${workText('No counts recorded yet. Start a count to verify your inventory.','Belum ada hitungan. Mulai hitung untuk memeriksa inventaris.')}</td></tr>`;
+    document.querySelectorAll('[data-work-count="archived"]').forEach(el=>el.textContent=String(items.filter(it=>it.archived).length));
+  }
+
+  // Recovery controls remain available while ordinary mutations are paused.
+  document.getElementById('retrySave').addEventListener('click',()=>storageApi.saveAllData());
+  document.getElementById('downloadDraft').addEventListener('click',()=>{if(pendingSave)downloadBackup(pendingSave,'unsaved-draft');});
+  document.getElementById('reloadCloud').addEventListener('click',()=>{
+    if(saving||!confirm('Discard the unsaved draft and load cloud data? Download the draft first if needed. / Buang draf dan muat data cloud?'))return;
+    pendingSave=null;try{localStorage.removeItem(draftKey());}catch(e){}
+    if(latestSnapshot){baseSnapshot=clone(latestSnapshot);applyData(baseSnapshot);renderAll();setSync(connected?'saved':'offline');}
+  });
+  for(const eventName of ['click','change'])document.addEventListener(eventName,e=>{
+    if(!e.target.closest('.app,.modal-backdrop'))return;
+    if(e.target.closest('#syncBar,.table-sort-button'))return;
+    // Reading/navigation/export/closing a dialog remains possible.
+    if(e.type==='click'&&e.target.closest('nav.tabs,#exportSaveBtn,#exportBtn,#logoutBtn,#themeToggle,#langToggle,.close-x,[id^="cancel"],[id^="close"]')){
+      if(e.target.closest('#logoutBtn')&&(pendingSave||saving)){e.preventDefault();e.stopImmediatePropagation();alert('Resolve or download your draft before signing out. / Selesaikan draf sebelum keluar.');}
+      return;
+    }
+    if(!isFirebaseReady||!connected||pendingSave||saving){e.preventDefault();e.stopImmediatePropagation();showToast('Editing paused. Check the cloud status above. / Pengeditan dijeda. Periksa status cloud.',true);}
+  },true);
+  document.addEventListener('click',e=>{
+    const toggle=e.target.closest('.tags-dots-badge');if(toggle){const expanded=toggle.parentElement.classList.toggle('expanded');toggle.setAttribute('aria-expanded',String(expanded));}
+  });
+  let focusBeforeModal=null,focusedModal=null;
+  const modalObserver=new MutationObserver(()=>{
+    const active=document.querySelector('.modal-backdrop.active');
+    if(active&&active!==focusedModal){
+      focusBeforeModal=document.activeElement;focusedModal=active;
+      active.setAttribute('role','dialog');active.setAttribute('aria-modal','true');
+      const heading=active.querySelector('h3');if(heading){heading.id=heading.id||active.id+'-title';active.setAttribute('aria-labelledby',heading.id);}else active.setAttribute('aria-label','Details');
+      (active.querySelector('input,select,textarea,button')||active).focus();
+    }else if(!active&&focusedModal){
+      focusedModal=null;focusBeforeModal?.focus();
+      if(!pendingSave&&!saving&&latestSnapshot&&!equivalent(baseSnapshot,latestSnapshot)){baseSnapshot=clone(latestSnapshot);applyData(baseSnapshot);renderAll();setSync(connected?'saved':'offline');}
+    }
+  });
+  document.querySelectorAll('.modal-backdrop').forEach(el=>modalObserver.observe(el,{attributes:true,attributeFilter:['class']}));
+  document.addEventListener('keydown',e=>{
+    const modal=document.querySelector('.modal-backdrop.active');if(!modal)return;
+    if(e.key==='Escape'){e.preventDefault();modal.classList.remove('active');}
+    if(e.key==='Tab'){
+      const focusables=[...modal.querySelectorAll('button,input,select,textarea,[tabindex="0"]')].filter(el=>!el.disabled&&el.getClientRects().length);
+      const first=focusables[0],last=focusables[focusables.length-1];
+      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}
+      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}
+    }
+  });
+  document.querySelectorAll('.field label').forEach(label=>{const input=label.parentElement.querySelector('input,select,textarea');if(input?.id)label.htmlFor=input.id;});
+  document.querySelectorAll('button[title]').forEach(button=>button.setAttribute('aria-label',button.title));
+  document.getElementById('toast').setAttribute('role','status');
+  document.getElementById('toast').setAttribute('aria-live','polite');
+  let filterPreferencesLoaded=false;
+  const filterIds=['invSearch','invCategoryFilter','invLocationFilter','invStatusFilter'];
+  function enhanceInventoryNavigation(){
+    document.documentElement.lang=currentLang;
+    if(!filterPreferencesLoaded&&isFirebaseReady){
+      filterPreferencesLoaded=true;
+      try{const prefs=JSON.parse(localStorage.getItem('stock-monitor-filters')||'{}');for(const id of filterIds){if(typeof prefs[id]==='string')document.getElementById(id).value=prefs[id];}renderInventory();}catch(e){}
+    }
+    document.querySelectorAll('#statGrid .stat').forEach((card,index)=>{
+      const statuses=['','','','Low Stock','Out of Stock','Overstocked'];
+      card.setAttribute('role','button');card.tabIndex=0;
+      card.setAttribute('aria-label',card.textContent.trim()+' — view inventory');
+      const open=()=>{
+        document.querySelector('nav.tabs [data-view="inventory"]').click();
+        document.getElementById('invSearch').value='';
+        document.getElementById('invCategoryFilter').value='';document.getElementById('invLocationFilter').value='';selectedTagFilter='';
+        document.getElementById('invLifecycleFilter').value='active';document.getElementById('invStatusFilter').value=statuses[index]||'';renderInventory();
+      };
+      card.onclick=open;card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}};
+    });
+  }
+  for(const id of filterIds)document.getElementById(id).addEventListener('input',()=>{
+    try{localStorage.setItem('stock-monitor-filters',JSON.stringify(Object.fromEntries(filterIds.map(key=>[key,document.getElementById(key).value]))));}catch(e){}
+  });
+  const columnButton=document.createElement('button');columnButton.id='fullColumns';columnButton.className='btn-ghost';columnButton.type='button';columnButton.textContent='All columns / Semua kolom';columnButton.setAttribute('aria-pressed','false');
+  columnButton.onclick=()=>columnButton.setAttribute('aria-pressed',String(document.getElementById('view-inventory').classList.toggle('show-all-columns')));
+  document.querySelector('#view-inventory .toolbar').append(columnButton);
+
+  // Presentation-only sorting: move existing table rows, preserving their event
+  // handlers, without changing the arrays sent to Firebase or report exports.
+  (function setupTableSorting(){
+    const collator = new Intl.Collator(undefined,{numeric:true,sensitivity:'base'});
+    const preferenceKey='stock-monitor-table-sorts-v1';
+    let preferences={};
+    try{const saved=JSON.parse(localStorage.getItem(preferenceKey)||'{}');if(saved&&typeof saved==='object'&&!Array.isArray(saved))preferences=saved;}catch(e){}
+    const announcement=document.createElement('div');
+    announcement.className='sr-only';announcement.setAttribute('role','status');announcement.setAttribute('aria-live','polite');
+    document.body.append(announcement);
+
+    function cellValue(cell,type){
+      if(!cell)return null;
+      if(cell.hasAttribute('data-sort-value')){
+        const raw=cell.getAttribute('data-sort-value');
+        return raw===''?null:type==='number'||type==='date'?Number(raw):raw;
+      }
+      let text='';
+      const select=cell.querySelector('select');
+      if(select)text=select.value ? select.selectedOptions[0]?.textContent||'' : '';
+      else{
+        const copy=cell.cloneNode(true);
+        copy.querySelectorAll('button,.cam,.sort-indicator').forEach(node=>node.remove());
+        text=copy.textContent.replace(/\s+/g,' ').trim();
+      }
+      if(!text||text==='—'||text==='–'||text==='-')return null;
+      if(type==='number'){
+        const n=Number(text.replace(/Rp\s*/gi,'').replace(/,/g,'').trim());
+        return Number.isFinite(n)?n:null;
+      }
+      if(type==='date'){
+        const timestamp=Date.parse(text);
+        return Number.isFinite(timestamp)?timestamp:null;
+      }
+      return text;
+    }
+
+    document.querySelectorAll('.view table,#itemHistoryModal table').forEach(table=>{
+      const body=table.tBodies[0],head=table.tHead;
+      if(!body?.id||!head)return;
+      const headers=[...head.rows[0].cells];
+      let sort=preferences[body.id];
+      if(!sort||!Number.isInteger(sort.column)||sort.column<0||sort.column>=headers.length||!['asc','desc'].includes(sort.direction)||!headers[sort.column].textContent.trim())sort=null;
+      let defaultOrder=new WeakMap();
+      const controls=[];
+      const observe=()=>observer.observe(body,{childList:true});
+      function rows(){return [...body.rows].filter(row=>!row.classList.contains('empty-row')&&row.cells.length===headers.length);}
+      function updateHeaders(){
+        controls.forEach(({header,button,label,indicator,column})=>{
+          const active=sort?.column===column;
+          if(active)header.setAttribute('aria-sort',sort.direction==='asc'?'ascending':'descending');else header.removeAttribute('aria-sort');
+          const arrow=active?(sort.direction==='asc'?'▲':'▼'):'↕';
+          if(indicator.textContent!==arrow)indicator.textContent=arrow;
+          const next=active?(sort.direction==='asc'?'desc':'default'):'asc';
+          const action=currentLang==='id'?{asc:'Urutkan naik',desc:'Urutkan turun',default:'Pulihkan urutan awal'}:{asc:'Sort ascending',desc:'Sort descending',default:'Restore default order'};
+          button.setAttribute('aria-label',label.textContent.trim()+': '+action[next]);
+          button.title=currentLang==='id'?'Klik: naik → turun → urutan awal':'Click: ascending → descending → default order';
+        });
+      }
+      function applySort(){
+        observer.disconnect();
+        const current=rows();
+        if(current.some(row=>!defaultOrder.has(row))){defaultOrder=new WeakMap();current.forEach((row,index)=>defaultOrder.set(row,index));}
+        let ordered=current.slice();
+        if(sort){
+          const header=headers[sort.column];
+          const type=header.dataset.sortType;
+          const keys=new Map(current.map(row=>[row,cellValue(row.cells[sort.column],type)]));
+          ordered.sort((a,b)=>{
+            const x=keys.get(a),y=keys.get(b);
+            if(x===null&&y!==null)return 1;if(y===null&&x!==null)return -1;
+            const compare=x===null&&y===null?0:type==='text'?collator.compare(x,y):x-y;
+            return compare*(sort.direction==='asc'?1:-1)||defaultOrder.get(a)-defaultOrder.get(b);
+          });
+        }else ordered.sort((a,b)=>defaultOrder.get(a)-defaultOrder.get(b));
+        if(ordered.some((row,index)=>row!==current[index])){
+          const fragment=document.createDocumentFragment();ordered.forEach(row=>fragment.append(row));body.append(fragment);
+        }
+        updateHeaders();observe();
+      }
+      const observer=new MutationObserver(applySort);
+      headers.forEach((header,column)=>{
+        if(!header.textContent.trim())return; // Actions column has no data to sort.
+        const key=header.getAttribute('data-i18n')||header.querySelector('[data-i18n]')?.getAttribute('data-i18n');
+        header.dataset.sortType=header.classList.contains('num')||header.textContent.trim()==='#'?'number':['thDate','thDateTime','thActTime','thTxDate','thReceived'].includes(key)?'date':'text';
+        header.dataset.tableSort='';header.scope='col';header.classList.add('sortable');
+        const button=document.createElement('button');button.type='button';button.className='table-sort-button';
+        const label=document.createElement('span');label.className='table-sort-label';
+        if(header.hasAttribute('data-i18n')){label.setAttribute('data-i18n',key);header.removeAttribute('data-i18n');}
+        for(const attr of ['data-work-en','data-work-id'])if(header.hasAttribute(attr)){label.setAttribute(attr,header.getAttribute(attr));header.removeAttribute(attr);}
+        while(header.firstChild)label.append(header.firstChild);
+        const indicator=document.createElement('span');indicator.className='sort-indicator';indicator.setAttribute('aria-hidden','true');
+        button.append(label,indicator);header.append(button);controls.push({header,button,label,indicator,column});
+        button.addEventListener('click',()=>{
+          sort=sort?.column===column?(sort.direction==='asc'?{column,direction:'desc'}:null):{column,direction:'asc'};
+          if(sort)preferences[body.id]=sort;else delete preferences[body.id];
+          try{localStorage.setItem(preferenceKey,JSON.stringify(preferences));}catch(e){}
+          applySort();
+          const direction=currentLang==='id'?{asc:'naik',desc:'turun',default:'urutan awal'}:{asc:'ascending',desc:'descending',default:'default order'};
+          announcement.textContent=label.textContent.trim()+': '+direction[sort?.direction||'default'];
+        });
+      });
+      // Translated labels may change independently of the table rows.
+      new MutationObserver(updateHeaders).observe(head,{childList:true,subtree:true,characterData:true});
+      applySort();
+    });
+  })();
 
   // ---------- init ----------
   (function init(){
