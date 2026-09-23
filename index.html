@@ -1768,13 +1768,27 @@
       const userId=auth.currentUser.uid;
       try{
         validateData(intended);saving=true;setSync('saving');
-        const result=await db.ref('stock-monitor-data').transaction(current=>{
+        const ref=db.ref('stock-monitor-data');
+        let emptyCache=false;
+        const compareAndSave=current=>{
+          emptyCache=current===null&&!equivalent(expected,{});
           if(!equivalent(current||{},expected))return;
           // Preserve unknown sibling fields from future versions.
           return {...(current||{}),...intended};
-        },undefined,false);
+        };
+        let result=await ref.transaction(compareAndSave,undefined,false);
+        // An initial null can be an unpopulated SDK cache, not a cloud conflict.
+        // Warm the cache, then retry the same comparison against the ORIGINAL base.
+        if(!result.committed&&emptyCache){
+          const fresh=await ref.once('value');
+          if(auth.currentUser?.uid!==userId)return;
+          latestSnapshot=clone(fresh.val()||{});
+          if(!equivalent(latestSnapshot,expected)){setSync('conflict');return;}
+          result=await ref.transaction(compareAndSave,undefined,false);
+          if(!result.committed&&emptyCache){setSync('failed','Cloud read not ready. Retry / Coba lagi');return;}
+        }
         if(auth.currentUser?.uid!==userId)return;
-        if(!result.committed){setSync('conflict');return;}
+        if(!result.committed){latestSnapshot=clone(result.snapshot.val()||{});setSync('conflict');return;}
         pendingSave=null;
         try{localStorage.removeItem(draftKey());}catch(e){}
         baseSnapshot=clone(result.snapshot.val()||{});latestSnapshot=clone(baseSnapshot);
