@@ -1716,6 +1716,9 @@
   }
   function equivalent(a,b){return JSON.stringify(canonical(a))===JSON.stringify(canonical(b));}
   function applyData(val){
+    // Editable state must never share nested arrays/objects with the CAS baseline.
+    // History edits after a save otherwise mutate the expected cloud snapshot.
+    val=clone(val);
     items=(val.items||[]).map(it=>({code:'',purposes:[],locationId:'',maxStock:'',weightKg:0,category:'Plat',...it}));
     stockIn=(val.stockIn||[]).map(x=>({receivedDate:x.receivedDate||x.orderedDate||'',notes:'',history:[],createdAt:0,...x}));
     stockOut=(val.stockOut||[]).map(x=>({notes:'',history:[],createdAt:0,...x}));
