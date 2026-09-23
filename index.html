@@ -1118,7 +1118,7 @@
 
   <div class="footer-bottom-bar">
     <div class="footer-left">
-      <footer class="note" data-i18n="footerNote">Check the cloud status before closing. Export Save Data creates a complete ZIP backup. Import accepts ZIP, JSON backups, and Excel reports. Excel reports do not contain photos; matching existing photos are preserved.</footer>
+      <footer class="note" data-i18n="footerNote">Check the cloud status before closing. Export Save Data creates a complete ZIP backup. Import accepts ZIP, JSON backups, and Excel reports. Photo attachments are no longer used.</footer>
     </div>
     <div class="footer-actions">
       <button class="btn-bottom-footer" id="logoutBtn">🔒 <span id="logoutText">Logout</span></button>
@@ -1134,16 +1134,6 @@
   <div class="modal">
     <div class="modal-head"><h3 id="itemModalTitle" data-i18n="modalAddItemTitle">Add new item</h3><button class="close-x" id="closeItemModal">&times;</button></div>
     <div class="modal-body">
-      <div class="field">
-        <label data-i18n="lblPhotoOpt">Photo (optional)</label>
-        <div class="photo-row">
-          <div class="photo-preview-box" id="itemPhotoPreviewBox"><span class="ph-empty" data-i18n="phNoPhoto">No photo</span></div>
-          <div style="display:flex;flex-direction:column;gap:6px;">
-            <input type="file" id="itemPhotoInput" accept="image/*">
-            <button type="button" class="btn-ghost btn-sm" id="itemPhotoRemove" style="display:none;width:fit-content;" data-i18n="btnRemovePhoto">Remove photo</button>
-          </div>
-        </div>
-      </div>
       <div class="field"><label data-i18n="lblItemCode">Item code (optional)</label><input type="text" id="itemCode" placeholder="e.g. SUPP-001" data-i18n-ph="phItemCode"></div>
       <div class="field"><label data-i18n="lblItemName">Item name</label><input type="text" id="itemName"></div>
       <div class="field"><label data-i18n="lblLocation">Storage Location</label><select id="itemLocationSelect"></select></div>
@@ -1350,24 +1340,6 @@
   </div>
 </div>
 
-<!-- Image lightbox -->
-<div class="modal-backdrop" id="imgLightbox">
-  <div class="lightbox-inner" style="display:flex; flex-direction:column; align-items:center;">
-    <div style="margin-bottom: 10px; display:flex; gap:10px; z-index: 60;">
-      <button class="btn-primary" id="zoomOutBtn">🔍 -</button>
-      <button class="btn-primary" id="zoomResetBtn">Reset</button>
-      <button class="btn-primary" id="zoomInBtn">🔍 +</button>
-      <button class="btn-danger" id="closeLightbox" style="font-size: 16px;">&times; Close</button>
-    </div>
-    <div style="overflow: auto; max-width: 92vw; max-height: 80vh;">
-      <img id="imgLightboxImg" src="" alt="" style="transition: transform 0.2s ease; transform-origin: top center;">
-    </div>
-  </div>
-</div>
-
-<!-- Floating hover preview -->
-<div class="img-float-preview" id="imgFloatPreview"><img id="imgFloatPreviewImg" src="" alt=""></div>
-
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1495,12 +1467,9 @@
       thLocContact: "Contact Person",
       thLocPhone: "Phone Number",
       thLocItems: "Items Stored",
-      footerNote: "Check the cloud status before closing. Export Save Data creates a complete ZIP backup. Import accepts ZIP, JSON backups, and Excel reports. Excel reports do not contain photos; matching existing photos are preserved.",
+      footerNote: "Check the cloud status before closing. Export Save Data creates a complete ZIP backup. Import accepts ZIP, JSON backups, and Excel reports. Photo attachments are no longer used.",
       modalAddItemTitle: "Add new item",
       modalEditItemTitle: "Edit item",
-      lblPhotoOpt: "Photo (optional)",
-      phNoPhoto: "No photo",
-      btnRemovePhoto: "Remove photo",
       lblItemCode: "Item code (optional)",
       phItemCode: "e.g. SUPP-001",
       lblItemName: "Item name",
@@ -1659,12 +1628,9 @@
       thLocContact: "Kontak Person",
       thLocPhone: "Nomor Telepon",
       thLocItems: "Jumlah Barang Stored",
-      footerNote: "Periksa status cloud sebelum menutup. Ekspor File Simpanan membuat cadangan ZIP lengkap. Impor menerima ZIP, JSON, dan laporan Excel. Laporan Excel tidak berisi foto; foto lama yang cocok dipertahankan.",
+      footerNote: "Periksa status cloud sebelum menutup. Ekspor File Simpanan membuat cadangan ZIP lengkap. Impor menerima ZIP, JSON, dan laporan Excel. Lampiran foto tidak lagi digunakan.",
       modalAddItemTitle: "Tambah Barang Baru",
       modalEditItemTitle: "Edit Barang",
-      lblPhotoOpt: "Foto (opsional)",
-      phNoPhoto: "Tidak ada foto",
-      btnRemovePhoto: "Hapus foto",
       lblItemCode: "Kode barang (opsional)",
       phItemCode: "misal: SUPP-001",
       lblItemName: "Nama barang",
@@ -1739,8 +1705,8 @@
   let isInitialLoad = true, isFirebaseReady = false, connected = false;
   let baseSnapshot = null, latestSnapshot = null, pendingSave = null, saving = false;
   const clone = value => JSON.parse(JSON.stringify(value));
-  const dataKeys = ['items','stockIn','stockOut','vendors','locations','globalPricePerKg','globalPriceHistory','itemImages'];
-  function snapshotData(){return clone({items,stockIn,stockOut,vendors,locations,globalPricePerKg,globalPriceHistory,itemImages});}
+  const dataKeys = ['items','stockIn','stockOut','vendors','locations','globalPricePerKg','globalPriceHistory'];
+  function snapshotData(){return clone({items,stockIn,stockOut,vendors,locations,globalPricePerKg,globalPriceHistory});}
   function canonical(value){
     if(value===null || value===undefined) return null;
     if(typeof value!=='object') return value;
@@ -1755,7 +1721,7 @@
     stockOut=(val.stockOut||[]).map(x=>({notes:'',history:[],createdAt:0,...x}));
     vendors=(val.vendors||[]).map(v=>({contactName:'',phone:'',...v}));
     locations=val.locations||[];globalPricePerKg=Number(val.globalPricePerKg||0);
-    globalPriceHistory=val.globalPriceHistory||[];itemImages=val.itemImages||{};
+    globalPriceHistory=val.globalPriceHistory||[];itemImages={};
   }
   function draftKey(){return 'stock-monitor-draft:'+firebaseConfig.projectId+':'+(auth.currentUser?.uid||'');}
   function persistDraft(){
@@ -1862,8 +1828,8 @@
     if([...balances.values()].some(n=>n < -1e-8))fail('This change would leave negative stock');
     for(const it of d.items)if(it.archived&&Math.abs(balances.get(it.id))>1e-8)fail('Archived items must have zero stock: '+it.name);
     if(!numberOK(d.globalPricePerKg)||!Array.isArray(d.globalPriceHistory))fail('Invalid pricing');
-    if(!d.itemImages||typeof d.itemImages!=='object'||Array.isArray(d.itemImages))fail('Invalid images');
-    for(const [id,img] of Object.entries(d.itemImages))if(!idOK(id)||!itemIds.has(id)||!safeImage(img)||img.length>12*1024*1024)fail('Invalid or oversized photo');
+    // Legacy photos are ignored; current saves contain inventory only.
+    delete d.itemImages;
     function walk(value,depth=0){
       if(depth>20)fail('Data is nested too deeply');
       if(typeof value==='string'&&value.length>12*1024*1024)fail('Text is too large');
@@ -1883,18 +1849,6 @@
   function confirmRemoval(){
     if(!confirm(currentLang==='id'?'Hapus catatan ini? Cadangan pemulihan akan diunduh terlebih dahulu.':'Delete this entry? A recovery backup will download first.'))return false;
     downloadBackup(snapshotData(),'before-delete');return true;
-  }
-  async function resizePhoto(file){
-    if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>10*1024*1024)throw new Error('Use a JPEG, PNG or WebP photo under 10 MB');
-    const url=URL.createObjectURL(file);
-    try{
-      const img=new Image();img.src=url;await img.decode();
-      if(img.width*img.height>40000000)throw new Error('Image dimensions are too large');
-      const scale=Math.min(1,1280/Math.max(img.width,img.height)),canvas=document.createElement('canvas');
-      canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));
-      const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
-      return canvas.toDataURL('image/jpeg',0.82);
-    }finally{URL.revokeObjectURL(url);}
   }
 
   // ---------- state ----------
@@ -1922,8 +1876,6 @@
   let itemTags = [];
   let editingStockInId = null;
   let editingStockOutId = null;
-  let itemPhotoTemp = '';
-  let itemPhotoChanged = false;
 
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
   const fmtInt = n => Number(n||0).toLocaleString('en-US');
@@ -2236,70 +2188,6 @@
     input.addEventListener('blur', () => { setTimeout(() => menu.classList.remove('open'), 120); });
   }
   initTagCombo();
-
-  // ---------- image hover preview + lightbox ----------
-  const floatPreview = document.getElementById('imgFloatPreview');
-  const floatPreviewImg = document.getElementById('imgFloatPreviewImg');
-  function showFloatPreview(el, src){
-    floatPreviewImg.src = src;
-    floatPreview.style.display = 'block';
-    floatPreview.style.left = '-9999px';
-    const rect = el.getBoundingClientRect();
-    requestAnimationFrame(()=>{
-      const pw = floatPreview.offsetWidth, ph = floatPreview.offsetHeight;
-      let left = rect.left;
-      let top = rect.bottom + 6;
-      if(left + pw > window.innerWidth - 8) left = Math.max(8, window.innerWidth - pw - 8);
-      if(top + ph > window.innerHeight - 8) top = Math.max(8, rect.top - ph - 6);
-      floatPreview.style.left = left+'px';
-      floatPreview.style.top = top+'px';
-    });
-  }
-  function hideFloatPreview(){ floatPreview.style.display = 'none'; }
-
-  const imgLightbox = document.getElementById('imgLightbox');
-  const imgLightboxImg = document.getElementById('imgLightboxImg');
-  
-  let currentZoom = 1;
-  const zoomStep = 0.25;
-
-  document.getElementById('zoomInBtn').addEventListener('click', () => {
-    currentZoom += zoomStep;
-    imgLightboxImg.style.transform = `scale(${currentZoom})`;
-  });
-
-  document.getElementById('zoomOutBtn').addEventListener('click', () => {
-    if (currentZoom > zoomStep) {
-      currentZoom -= zoomStep;
-      imgLightboxImg.style.transform = `scale(${currentZoom})`;
-    }
-  });
-
-  document.getElementById('zoomResetBtn').addEventListener('click', () => {
-    currentZoom = 1;
-    imgLightboxImg.style.transform = `scale(${currentZoom})`;
-  });
-
-  document.getElementById('closeLightbox').addEventListener('click', ()=>imgLightbox.classList.remove('active'));
-
-  function openLightbox(src){
-    imgLightboxImg.src = src;
-    currentZoom = 1;
-    imgLightboxImg.style.transform = `scale(${currentZoom})`;
-    imgLightbox.classList.add('active');
-    hideFloatPreview();
-  }
-
-  function wireItemPhotoHover(container){
-    container.querySelectorAll('[data-img-id]').forEach(el=>{
-      const src = safeImage(itemImages[el.getAttribute('data-img-id')]);
-      if(!src) return;
-      el.classList.add('has-photo');
-      el.addEventListener('mouseenter', ()=>showFloatPreview(el, src));
-      el.addEventListener('mouseleave', hideFloatPreview);
-      el.addEventListener('click', ()=>openLightbox(src));
-    });
-  }
 
   // ---------- charts ----------
   function svgEl(w,h,inner){
@@ -2742,47 +2630,6 @@
   document.getElementById('topItemsMonthFrom').addEventListener('change', renderTopItems);
   document.getElementById('topItemsMonthTo').addEventListener('change', renderTopItems);
 
-  // ---------- image handling ----------
-  function readFileAsDataURL(file){
-    return new Promise((resolve,reject)=>{
-      const reader = new FileReader();
-      reader.onload = e => resolve(e.target.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-  function setPhotoPreview(dataUrl){
-    const box = document.getElementById('itemPhotoPreviewBox');
-    const removeBtn = document.getElementById('itemPhotoRemove');
-    if(dataUrl){
-      const image = document.createElement('img');
-      image.src = safeImage(dataUrl); image.alt = 'Item photo';
-      box.replaceChildren(image);
-      removeBtn.style.display='';
-    }else{
-      box.innerHTML = `<span class="ph-empty">${t('phNoPhoto')}</span>`;
-      removeBtn.style.display='none';
-    }
-  }
-  document.getElementById('itemPhotoInput').addEventListener('change', async (e)=>{
-    const file = e.target.files[0];
-    if(!file) return;
-    try{
-      const dataUrl = await resizePhoto(file);
-      itemPhotoTemp = dataUrl;
-      itemPhotoChanged = true;
-      setPhotoPreview(dataUrl);
-    }catch(err){
-      showToast(currentLang==='en'?'Could not read that image.':'Gagal membaca gambar.', true);
-    }
-  });
-  document.getElementById('itemPhotoRemove').addEventListener('click', ()=>{
-    itemPhotoTemp = '';
-    itemPhotoChanged = true;
-    setPhotoPreview('');
-    document.getElementById('itemPhotoInput').value='';
-  });
-
   // Helper for filtering items
   function getFilteredItems(){
     const search = document.getElementById('invSearch').value.trim().toLowerCase();
@@ -2847,8 +2694,8 @@
         `;
       }
 
-      const img = itemImages[it.id];
-      const nameCell = `<span class="item-hover" data-img-id="${escapeHtml(it.id)}">${escapeHtml(it.name)}${it.archived?'<span class="archive-badge">Archived</span>':''}${img?' <span class="cam">📷</span>':''}</span>`;
+
+      const nameCell = `<span class="item-hover">${escapeHtml(it.name)}${it.archived?'<span class="archive-badge">Archived</span>':''}</span>`;
       
       const locOptions = `<option value="">${t('optUnassignedLoc')}</option>` +
         locations.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(l => `<option value="${escapeHtml(l.id)}" ${it.locationId===l.id?'selected':''}>${escapeHtml(l.name)}</option>`).join('');
@@ -2885,7 +2732,6 @@
       </tr>`;
     }).join('');
 
-    wireItemPhotoHover(body);
 
     body.querySelectorAll('[data-view-hist]').forEach(b=>{
       b.addEventListener('click', ()=> openItemHistoryModal(b.getAttribute('data-view-hist')));
@@ -3191,7 +3037,6 @@
     if(items.find(it=>it.id===itemId)?.archived){showToast(workText('Restore this item before editing.','Pulihkan barang sebelum mengedit.'),true);return;}
     document.getElementById('itemError').style.display='none';
     const editNote = document.getElementById('itemEditNote');
-    itemPhotoChanged = false;
     if(mode==='add'){
       editingItemId = null;
       document.getElementById('itemModalTitle').textContent = t('modalAddItemTitle');
@@ -3205,7 +3050,6 @@
       document.getElementById('itemInitWeight').value = 0;
       document.getElementById('itemInitQtyLabel').textContent = t('lblInitQty');
       itemTags = [];
-      itemPhotoTemp = '';
       editNote.style.display = 'none';
     }else{
       const it = items.find(i=>i.id===itemId);
@@ -3223,13 +3067,10 @@
       document.getElementById('itemInitQty').value = ob ? ob.qty : 0;
       document.getElementById('itemInitQtyLabel').textContent = t('lblInitQtyOb');
       itemTags = (it.purposes||[]).slice();
-      itemPhotoTemp = itemImages[itemId] || '';
       editNote.style.display = 'block';
     }
-    setPhotoPreview(itemPhotoTemp);
     renderItemTags();
     document.getElementById('itemTagInput').value='';
-    document.getElementById('itemPhotoInput').value='';
     itemModal.classList.add('active');
   }
   document.getElementById('addItemBtn').addEventListener('click', ()=>openItemModal('add'));
@@ -3280,14 +3121,6 @@
       items.push({id:targetId, code, name, locationId, category, minStock, maxStock, weightKg: itemWeight, purposes: itemTags.slice()});
       if(newInitQty > 0){
         stockIn.push({id: uid(), itemId:targetId, vendor:'Opening balance', orderNo:'', receivedDate: todayISO(), qty:newInitQty, notes:'', history:[{ts:nowStamp(), summary:`Created by ${userEmail} (opening balance)`}], createdAt: Date.now()});
-      }
-    }
-
-    if(itemPhotoChanged){
-      if(itemPhotoTemp){
-        itemImages[targetId] = itemPhotoTemp;
-      }else{
-        delete itemImages[targetId];
       }
     }
 
@@ -3871,15 +3704,6 @@
     const dataObj = snapshotData(); delete dataObj.itemImages;
     zip.file("stock_monitor_data.json", JSON.stringify(dataObj, null, 2));
     
-    const imgFolder = zip.folder("images");
-    for (const [id, dataUrl] of Object.entries(itemImages)) {
-      const base64Data = dataUrl.split(',')[1];
-      if (base64Data) {
-         const extension = /^data:image\/(png|webp|gif);/.exec(dataUrl)?.[1] || 'jpg';
-          imgFolder.file(`${id}.${extension}`, base64Data, {base64: true});
-      }
-    }
-    
     const content = await zip.generateAsync({type:"blob"});
     saveAs(content, `Stock_Monitor_Backup_${todayISO()}.zip`);
     showToast(currentLang==='en'?'Save Data Zipped and Exported!':'File simpanan ZIP berhasil diekspor!');
@@ -4128,13 +3952,6 @@
         }
         const json=zip.file('stock_monitor_data.json');if(!json)throw new Error('Backup JSON is missing');
         candidate=JSON.parse(await json.async('string'));
-        if(!candidate.itemImages){
-          candidate.itemImages={};
-          for(const entry of entries){
-            const match=/^images\/([A-Za-z0-9_-]+)\.(jpg|jpeg|png|webp|gif)$/i.exec(entry.name);
-            if(match)candidate.itemImages[match[1]]=`data:image/${/jpe?g/i.test(match[2])?'jpeg':match[2].toLowerCase()};base64,${await entry.async('base64')}`;
-          }
-        }
       }else if(/\.xlsx?$/i.test(file.name)){
         // XLSX is also a ZIP container: check expansion before spreadsheet parsing.
         if(/\.xlsx$/i.test(file.name)){
@@ -4147,19 +3964,18 @@
         }
         const result=parseWorkbook(XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:true}));
         if(!result.items.length)throw new Error('No inventory rows found');
-        candidate={...result,itemImages:{}};delete candidate.photosByName;
+        candidate={...result};
         for(const it of candidate.items){
           const old=before.items.find(x=>x.name.trim().toLowerCase()===it.name.trim().toLowerCase());
           if(old&&it.archived===undefined)for(const key of lifecycleKeys)if(old[key]!==undefined)it[key]=clone(old[key]);
-          const photo=result.photosByName[it.name.trim().toLowerCase()] || (old&&before.itemImages[old.id]);
-          if(photo)candidate.itemImages[it.id]=photo;
+
         }
       }else throw new Error('Use JSON, ZIP or Excel');
       candidate={items:[],stockIn:[],stockOut:[],vendors:[],locations:[],itemImages:{},globalPricePerKg:0,globalPriceHistory:[],...candidate};
       // Strip auxiliary parser fields; keep the existing eight cloud fields.
       candidate=Object.fromEntries(dataKeys.map(key=>[key,candidate[key]]));
       validateData(candidate);
-      const summary=`${candidate.items.length} items / barang\n${candidate.stockIn.length} stock-in / masuk\n${candidate.stockOut.length} stock-out / keluar\n${candidate.locations.length} locations / lokasi\n${Object.keys(candidate.itemImages).length} photos / foto`;
+      const summary=`${candidate.items.length} items / barang\n${candidate.stockIn.length} stock-in / masuk\n${candidate.stockOut.length} stock-out / keluar\n${candidate.locations.length} locations / lokasi`;
       if(!confirm('Replace current inventory with this file? / Ganti inventaris dengan berkas ini?\n\n'+summary+'\n\nA recovery backup downloads first. / Cadangan pemulihan diunduh terlebih dahulu.'))return;
       if(!equivalent(latestSnapshot,expected)||pendingSave)throw new Error('Cloud data changed during import. Start the import again. / Data cloud berubah. Ulangi impor.');
       downloadBackup(before,'before-import');
@@ -4311,24 +4127,6 @@
       }
     }
 
-    const photoRows = sheetRows(wb, 'Photos');
-    const photosByName = Object.create(null);
-    if(photoRows && photoRows.length>1){
-      const chunkMap = Object.create(null);
-      for(let r=1;r<photoRows.length;r++){
-        const row = photoRows[r];
-        if(!row || !row[0]) continue;
-        const key = String(row[0]).trim().toLowerCase();
-        const idx = Number(row[1])||0;
-        const data = String(row[2]||'');
-        if(!chunkMap[key]) chunkMap[key] = [];
-        chunkMap[key][idx] = data;
-      }
-      Object.keys(chunkMap).forEach(key=>{
-        photosByName[key] = chunkMap[key].join('');
-      });
-    }
-
     return {
       items: Array.from(itemMap.values()),
       stockIn: newStockIn,
@@ -4336,8 +4134,7 @@
       vendors: parsedVendors,
       locations: parsedLocations,
       globalPricePerKg: newGlobalPrice,
-      globalPriceHistory: newGlobalHistory,
-      photosByName
+      globalPriceHistory: newGlobalHistory
     };
   }
 
@@ -4511,7 +4308,7 @@
     try{requireOperationReady();const item=items.find(it=>it.id===id);if(!item)return;archiveWork={id,expected:clone(baseSnapshot),base:snapshotData()};
       const restoring=!!item.archived;document.getElementById('archiveTitle').textContent=workText(restoring?'Restore item':'Archive item',restoring?'Pulihkan barang':'Arsipkan barang');
       document.getElementById('confirmArchive').textContent=document.getElementById('archiveTitle').textContent;document.getElementById('archiveItemName').textContent=item.name;
-      document.getElementById('archiveExplanation').textContent=restoring?workText('This item will return to the active inventory. Its history is preserved.','Barang kembali ke inventaris aktif. Riwayat tetap tersimpan.'):workText(`On hand: ${fmtInt(itemStats(item).onHand)}. Only zero-stock items can be archived. History and photos are kept, and the item can be restored.`,`Stok tersedia: ${fmtInt(itemStats(item).onHand)}. Hanya stok nol dapat diarsipkan. Riwayat dan foto dipertahankan; barang dapat dipulihkan.`);
+      document.getElementById('archiveExplanation').textContent=restoring?workText('This item will return to the active inventory. Its history is preserved.','Barang kembali ke inventaris aktif. Riwayat tetap tersimpan.'):workText(`On hand: ${fmtInt(itemStats(item).onHand)}. Only zero-stock items can be archived. History is kept, and the item can be restored.`,`Stok tersedia: ${fmtInt(itemStats(item).onHand)}. Hanya stok nol dapat diarsipkan. Riwayat dipertahankan; barang dapat dipulihkan.`);
       document.getElementById('archiveReason').value='';operationError('archiveError',null);translateWorkflows();document.getElementById('archiveModal').classList.add('active');
     }catch(e){showToast(e.message,true);}
   }
