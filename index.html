@@ -1780,7 +1780,7 @@
         // An initial null can be an unpopulated SDK cache, not a cloud conflict.
         // Warm the cache, then retry the same comparison against the ORIGINAL base.
         if(!result.committed&&emptyCache){
-          const fresh=await ref.once('value');
+          const fresh=await ref.get();
           if(auth.currentUser?.uid!==userId)return;
           latestSnapshot=clone(fresh.val()||{});
           if(!equivalent(latestSnapshot,expected)){setSync('conflict');return;}
@@ -1788,7 +1788,11 @@
           if(!result.committed&&emptyCache){setSync('failed','Cloud read not ready. Retry / Coba lagi');return;}
         }
         if(auth.currentUser?.uid!==userId)return;
-        if(!result.committed){latestSnapshot=clone(result.snapshot.val()||{});setSync('conflict');return;}
+        if(!result.committed){
+          latestSnapshot=clone(result.snapshot.val()||{});
+          const changed=[...new Set([...Object.keys(expected),...Object.keys(latestSnapshot)])].filter(key=>!equivalent(expected[key],latestSnapshot[key]));
+          setSync('conflict',changed.length?'Changed sections: '+changed.map(key=>dataKeys.includes(key)?key:'other data').join(', '):'No differing fields — please report this message');return;
+        }
         pendingSave=null;
         try{localStorage.removeItem(draftKey());}catch(e){}
         baseSnapshot=clone(result.snapshot.val()||{});latestSnapshot=clone(baseSnapshot);
@@ -4355,10 +4359,22 @@
   // Recovery controls remain available while ordinary mutations are paused.
   document.getElementById('retrySave').addEventListener('click',()=>storageApi.saveAllData());
   document.getElementById('downloadDraft').addEventListener('click',()=>{if(pendingSave)downloadBackup(pendingSave,'unsaved-draft');});
-  document.getElementById('reloadCloud').addEventListener('click',()=>{
+  document.getElementById('reloadCloud').addEventListener('click',async()=>{
     if(saving||!confirm('Discard the unsaved draft and load cloud data? Download the draft first if needed. / Buang draf dan muat data cloud?'))return;
-    pendingSave=null;try{localStorage.removeItem(draftKey());}catch(e){}
-    if(latestSnapshot){baseSnapshot=clone(latestSnapshot);applyData(baseSnapshot);renderAll();setSync(connected?'saved':'offline');}
+    if(!connected){setSync('failed','Reconnect before loading cloud data');return;}
+    const userId=auth.currentUser?.uid;
+    saving=true;setSync('saving','Loading latest cloud data');
+    try{
+      const fresh=await db.ref('stock-monitor-data').get();
+      if(auth.currentUser?.uid!==userId)return;
+      if(!connected)throw new Error('Connection lost. Draft retained');
+      const loaded=clone(fresh.val()||{});
+      applyData(loaded);baseSnapshot=clone(loaded);latestSnapshot=clone(loaded);
+      pendingSave=null;clearTimeout(saveTimer);
+      try{localStorage.removeItem(draftKey());}catch(e){}
+      renderAll();setSync('saved','Latest cloud copy loaded');
+    }catch(e){setSync('failed',e.code||e.message);}
+    finally{saving=false;document.getElementById('retrySave').hidden=!pendingSave;document.getElementById('reloadCloud').hidden=!pendingSave;}
   });
   for(const eventName of ['click','change'])document.addEventListener(eventName,e=>{
     if(!e.target.closest('.app,.modal-backdrop'))return;
